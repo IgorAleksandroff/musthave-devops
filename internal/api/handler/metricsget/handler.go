@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 )
 
 type handler struct {

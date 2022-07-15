@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/metricscollection"
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/metricscollection/entity"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	"github.com/go-chi/chi"
 )
 

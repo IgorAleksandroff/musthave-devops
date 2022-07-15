@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"runtime"
 
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/runtimemetrics/entity"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/entity"
 )
 
 func (u usecase) UpdateMetrics() {

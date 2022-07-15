@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/api/services/devopsserver"
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/runtimemetrics"
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/runtimemetrics/entity"
+	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/entity"
 )
 
 type usecase struct {

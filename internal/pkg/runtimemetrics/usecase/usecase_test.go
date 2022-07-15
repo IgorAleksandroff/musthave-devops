@@ -4,11 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/api/services/devopsserver"
-	mocks2 "github.com/IgorAleksandroff/yp-musthave-devops/internal/api/services/devopsserver/mocks"
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/runtimemetrics"
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/runtimemetrics/entity"
-	"github.com/IgorAleksandroff/yp-musthave-devops/internal/pkg/runtimemetrics/mocks"
+	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
+	mocks2 "github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver/mocks"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/entity"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/mocks"
 	"github.com/stretchr/testify/mock"
 )
 

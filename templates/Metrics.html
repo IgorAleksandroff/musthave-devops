@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Metrics</title>
+</head>
+<body>
+    <h1>Metrics</h1>
+    <ul>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Value</th>
+            </tr>
+            {{ range $key, $value := . }}
+            <tr>
+                <td>{{$key}}</td>
+                <td>{{$value}}</td>
+            </tr>
+            {{end}}
+        </table>
+    </ul>
+</body>
+</html>

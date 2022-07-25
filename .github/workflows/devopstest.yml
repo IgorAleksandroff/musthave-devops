@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - increment04-dev
 
 jobs:
 
@@ -179,16 +179,16 @@ jobs:
 # Доработать сервер, что бы он мог изменять свои параметры запуска по умолчанию, через переменные окружения:
 #   ADDRESS (по умолчанию: "127.0.0.1:8080" или "localhost:8080")
 
-      - name: "Code increment #5"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          devopstest -test.v -test.run=^TestIteration5$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT
+#      - name: "Code increment #5"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          devopstest -test.v -test.run=^TestIteration5$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT
 
 # VI. Задание к шестому инкременту.
 # Доработать сервер, что бы он с заданной периодичностью сохранял текущие значения метрик на диск в указанный файл.
@@ -199,19 +199,19 @@ jobs:
 #   STORE_FILE по умолчанию ("/tmp/devops-metrics-db.json") - строка - имя файла, где хранятся значения (пустое значение - отключает функцию записи на диск)
 #   RESTORE по умолчанию (true) - булево значение (true|false), определяющее загружать или нет начальные значения из указанного файла при старте сервера.
 
-      - name: "Code increment #6"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration6$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -file-storage-path=$TEMP_FILE
+#      - name: "Code increment #6"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration6$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -file-storage-path=$TEMP_FILE
 
 # VII. Задание к седьмому инкременту.
 # Доработать код, что бы он умел принимать аргументы с использованием флагов.
@@ -226,37 +226,37 @@ jobs:
 #    POLL_INTERVAL, через флаг: "-p=<ЗНАЧЕНИЕ>"
 # Во всех случаях иметь значения по умолчанию и реализовать приоритет значений полученных через ENV, перед значениями задаваемые посредством флагов.
 
-      - name: "Code increment #7"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration7$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -file-storage-path=$TEMP_FILE
+#      - name: "Code increment #7"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration7$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -file-storage-path=$TEMP_FILE
 
 # VIII. Задание к восьмому инкременту.
 # Доработать код сервера, для реализации механизма cжатия данных сервером в формате gzip
 # для контента с типом: application/json и text/html
 
-      - name: "Code increment #8"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration8 \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -file-storage-path=$TEMP_FILE
+#      - name: "Code increment #8"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration8 \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -file-storage-path=$TEMP_FILE
 
 # IX. Задание к девятому инкременту.
 # Внимание: это учебный пример, в котором сделан акцент на закреплении пройденной темы,
@@ -290,20 +290,20 @@ jobs:
 #   * при наличии ключа, на этапе формирования ответа, сервер должен
 #     вычислять хеш и передавать его в соответствующем поле hash ответа.
 
-      - name: "Code increment #9"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration9$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -file-storage-path=$TEMP_FILE \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -key="${TEMP_FILE}"
+#      - name: "Code increment #9"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration9$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -file-storage-path=$TEMP_FILE \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -key="${TEMP_FILE}"
 
 # X. Задание к десятому инкременту.
 # Сервер:
@@ -313,19 +313,19 @@ jobs:
 # * Строка с адресом подключения к БД должна получаться из переменной окружения DATABASE_DSN или флага командной строки -d.
 #   Использование этого параметра имеет приоритет над параметром -file-storage-path и автоматически задействует функциональность сервера БД
 # NOTE: Для хранения значений gauge рекомендуется использовать тип: double precision
-      - name: "Code increment #10"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration10[b]*$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -key="${TEMP_FILE}"
+#      - name: "Code increment #10"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration10[b]*$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -key="${TEMP_FILE}"
 
 # XI. Задание к одиннадцатому инкременту.
 # Сервер:
@@ -333,19 +333,19 @@ jobs:
 #   Сервису необходимо самостоятельно создать все необходимые таблицы в базе данных,
 #   схема и формат хранения остаются на ваше усмотрение.
 
-      - name: "Code increment #11"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration11$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -key="${TEMP_FILE}"
+#      - name: "Code increment #11"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration11$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -key="${TEMP_FILE}"
 
 # XII. Задание к двенадцатому инкременту.
 # Сервер:
@@ -358,19 +358,19 @@ jobs:
 # * Мы умеем сжимать контент по алгоритму gzip
 # * Изменение в базе можно выполнять в рамках одной транзакции/одного запроса
 
-      - name: "Code increment #12"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration12$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -key="${TEMP_FILE}"
+#      - name: "Code increment #12"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration12$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -key="${TEMP_FILE}"
 
 
 # XIII. Задание к тринадцатому инкременту.
@@ -379,11 +379,11 @@ jobs:
 # * Для формирования отладочных сообщений, используйте стандартный логгер или одну из популярных библиотек логгирования.
 # * Не используйте функции fmt.Print* для вывода отладочной информации в коде сервера и агента
 
-      - name: "Code increment #13"
-        if: always()
-        run: |
-          devopstest -test.v -test.run=^TestIteration13$ \
-            -source-path=.
+#      - name: "Code increment #13"
+#        if: always()
+#        run: |
+#          devopstest -test.v -test.run=^TestIteration13$ \
+#            -source-path=.
 
 # XIV. Задание к четыринадцатому инкременту.
 # Агент:
@@ -395,17 +395,17 @@ jobs:
 #   * Имя метрики: "FreeMemory", тип: gauge - общее количество свободной памяти
 #   * Имя метрики: "CPUutilization1", тип: gauge - загрузка ядра в процентах за 10 секунд (точное количество - по числу CPU определяемое во время исполнения)
 
-      - name: "Code increment #14"
-        if: always()
-        run: |
-          SERVER_PORT=$(random unused-port)
-          ADDRESS="localhost:${SERVER_PORT}"
-          TEMP_FILE=$(random tempfile)
-          devopstest -test.v -test.run=^TestIteration14$ \
-            -source-path=. \
-            -agent-binary-path=cmd/agent/agent \
-            -binary-path=cmd/server/server \
-            -server-port=$SERVER_PORT \
-            -file-storage-path=$TEMP_FILE \
-            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-            -key="${TEMP_FILE}"
+#      - name: "Code increment #14"
+#        if: always()
+#        run: |
+#          SERVER_PORT=$(random unused-port)
+#          ADDRESS="localhost:${SERVER_PORT}"
+#          TEMP_FILE=$(random tempfile)
+#          devopstest -test.v -test.run=^TestIteration14$ \
+#            -source-path=. \
+#            -agent-binary-path=cmd/agent/agent \
+#            -binary-path=cmd/server/server \
+#            -server-port=$SERVER_PORT \
+#            -file-storage-path=$TEMP_FILE \
+#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+#            -key="${TEMP_FILE}"

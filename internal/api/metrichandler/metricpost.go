@@ -1,27 +1,14 @@
-package metricpost
+package metrichandler
 
 import (
 	"net/http"
 	"strconv"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	"github.com/go-chi/chi"
 )
 
-type handler struct {
-	metricsUC metricscollection.Usecase
-}
-
-func New(
-	metricsUC metricscollection.Usecase,
-) *handler {
-	return &handler{
-		metricsUC: metricsUC,
-	}
-}
-
-func (h *handler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "TYPE")
 	metricName := chi.URLParam(r, "NAME")
 

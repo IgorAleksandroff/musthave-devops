@@ -5,9 +5,7 @@ import (
 	"net/http"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/handler/metricget"
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/handler/metricpost"
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/handler/metricsget"
+	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repository"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/usecase"
 )
@@ -16,14 +14,12 @@ func main() {
 	metricsRepo := repository.New()
 	metricsUC := usecase.New(metricsRepo)
 
-	postHandler := metricpost.New(metricsUC)
-	getHandler := metricget.New(metricsUC)
-	getMetricsHandler := metricsget.New(metricsUC)
+	metricHandler := metrichandler.New(metricsUC)
 
 	server := api.New()
-	server.AddHandler(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", postHandler)
-	server.AddHandler(http.MethodGet, "/value/{TYPE}/{NAME}", getHandler)
-	server.AddHandler(http.MethodGet, "/", getMetricsHandler)
+	server.AddHandler(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
+	server.AddHandler(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
+	server.AddHandler(http.MethodGet, "/", metricHandler.HandleMetricsGet)
 
 	log.Fatal(server.Run())
 }

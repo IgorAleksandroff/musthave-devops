@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -14,8 +13,8 @@ func (u usecase) SendMetrics() {
 			continue
 		}
 
-		endpoint := fmt.Sprintf("/update/%s/%s/%v/", metric.Value.GetType(), metricName, metric.Value)
-		if _, err = u.devopsServerClient.DoPost(endpoint, nil); err != nil {
+		endpoint := "/update/"
+		if _, err = u.devopsServerClient.DoPost(endpoint, metric); err != nil {
 			log.Println(err)
 		}
 	}

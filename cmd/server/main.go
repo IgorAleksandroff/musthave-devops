@@ -21,7 +21,7 @@ func main() {
 	server.AddHandler(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
 	server.AddHandler(http.MethodGet, "/", metricHandler.HandleMetricsGet)
 	server.AddHandler(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
-	server.AddHandler(http.MethodGet, "/value/", metricHandler.HandleJSONGet)
+	server.AddHandler(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
 
 	log.Fatal(server.Run())
 }

@@ -18,7 +18,7 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contentTypeHeaderValue := r.Header.Get("content-type")
+	contentTypeHeaderValue := r.Header.Get("Content-Type")
 	if !strings.Contains(contentTypeHeaderValue, "application/json") {
 		http.Error(w, "unknown content-type", http.StatusNotImplemented)
 		return
@@ -32,14 +32,14 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 
 	switch metric.MType {
 	case entity.CounterTypeMetric:
-		valueMetric, errMetric := h.metricsUC.GetCounterMetric(metric.ID)
+		var valueMetric int64
+		valueMetric, err = h.metricsUC.GetCounterMetric(metric.ID)
 		metric.Delta = &valueMetric
-		err = errMetric
 
 	case entity.GaugeTypeMetric:
-		valueMetric, errMetric := h.metricsUC.GetGaugeMetric(metric.ID)
+		var valueMetric float64
+		valueMetric, err = h.metricsUC.GetGaugeMetric(metric.ID)
 		metric.Value = &valueMetric
-		err = errMetric
 
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
@@ -55,7 +55,7 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(buf.Bytes())
 }

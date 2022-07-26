@@ -15,7 +15,7 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contentTypeHeaderValue := r.Header.Get("content-type")
+	contentTypeHeaderValue := r.Header.Get("Content-Type")
 	if !strings.Contains(contentTypeHeaderValue, "application/json") {
 		http.Error(w, "unknown content-type", http.StatusNotImplemented)
 		return

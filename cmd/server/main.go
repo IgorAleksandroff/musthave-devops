@@ -20,6 +20,7 @@ func main() {
 	server.AddHandler(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
 	server.AddHandler(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
 	server.AddHandler(http.MethodGet, "/", metricHandler.HandleMetricsGet)
+	server.AddHandler(http.MethodPost, "/update", metricHandler.HandleJSONPost)
 
 	log.Fatal(server.Run())
 }

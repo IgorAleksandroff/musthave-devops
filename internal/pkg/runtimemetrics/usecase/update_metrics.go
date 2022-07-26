@@ -12,13 +12,16 @@ func (u usecase) UpdateMetrics() {
 	pollCount, err := u.repository.GetMetric("PollCount")
 	if err != nil {
 		log.Println(err)
-		pollCount = entity.Metric{Value: entity.Counter(0)}
+		var value int64
+		pollCount = entity.Metrics{
+			Delta: &value,
+		}
 	}
-	pollCountInt := int64(pollCount.Value.(entity.Counter)) + 1
-	randomValue := int64(rand.Int())
+	pollCountInt := *pollCount.Delta + 1
+	randomValue := float64(rand.Int())
 
 	u.repository.SaveMetric("PollCount", entity.Counter(pollCountInt))
-	u.repository.SaveMetric("RandomValue", entity.Counter(randomValue))
+	u.repository.SaveMetric("RandomValue", entity.Gauge(randomValue))
 
 	memMetrics := runtime.MemStats{}
 	runtime.ReadMemStats(&memMetrics)

@@ -22,10 +22,11 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reader := json.NewDecoder(r.Body)
-	if err := reader.Decode(&metric); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	reader.Decode(&metric)
+	//if err := reader.Decode(&metric); err != nil {
+	//	http.Error(w, err.Error(), http.StatusBadRequest)
+	//	return
+	//}
 
 	switch metric.MType {
 	case entity.CounterTypeMetric:

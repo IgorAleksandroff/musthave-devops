@@ -25,22 +25,21 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reader := json.NewDecoder(r.Body)
-	if err = reader.Decode(&metric); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	reader.Decode(&metric)
 
 	switch metric.MType {
 	case entity.CounterTypeMetric:
 		var valueMetric int64
-		valueMetric, err = h.metricsUC.GetCounterMetric(metric.ID)
+		var errMetric error
+		valueMetric, errMetric = h.metricsUC.GetCounterMetric(metric.ID)
 		metric.Delta = &valueMetric
-
+		err = errMetric
 	case entity.GaugeTypeMetric:
 		var valueMetric float64
-		valueMetric, err = h.metricsUC.GetGaugeMetric(metric.ID)
+		var errMetric error
+		valueMetric, errMetric = h.metricsUC.GetGaugeMetric(metric.ID)
 		metric.Value = &valueMetric
-
+		err = errMetric
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return

@@ -29,17 +29,19 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 
 	switch metric.MType {
 	case entity.CounterTypeMetric:
-		var valueMetric int64
-		var errMetric error
-		valueMetric, errMetric = h.metricsUC.GetCounterMetric(metric.ID)
+		valueMetric, errMetric := h.metricsUC.GetCounterMetric(metric.ID)
 		metric.Delta = &valueMetric
-		err = errMetric
+		if errMetric != nil {
+			http.Error(w, errMetric.Error(), http.StatusNotFound)
+			return
+		}
 	case entity.GaugeTypeMetric:
-		var valueMetric float64
-		var errMetric error
-		valueMetric, errMetric = h.metricsUC.GetGaugeMetric(metric.ID)
+		valueMetric, errMetric := h.metricsUC.GetGaugeMetric(metric.ID)
 		metric.Value = &valueMetric
-		err = errMetric
+		if errMetric != nil {
+			http.Error(w, errMetric.Error(), http.StatusNotFound)
+			return
+		}
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return

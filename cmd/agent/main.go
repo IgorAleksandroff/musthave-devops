@@ -21,7 +21,7 @@ func main() {
 		case <-pollInterval.C:
 			runtimeMetricsUC.UpdateMetrics()
 		case <-reportInterval.C:
-			runtimeMetricsUC.UpdateMetrics()
+			runtimeMetricsUC.SendMetrics()
 		}
 	}
 }

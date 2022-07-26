@@ -18,10 +18,10 @@ func (u usecase) UpdateMetrics() {
 		}
 	}
 	pollCountInt := *pollCount.Delta + 1
-	randomValue := int64(rand.Int())
+	randomValue := float64(rand.Int())
 
 	u.repository.SaveMetric("PollCount", entity.Counter(pollCountInt))
-	u.repository.SaveMetric("RandomValue", entity.Counter(randomValue))
+	u.repository.SaveMetric("RandomValue", entity.Gauge(randomValue))
 
 	memMetrics := runtime.MemStats{}
 	runtime.ReadMemStats(&memMetrics)

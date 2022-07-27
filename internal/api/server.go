@@ -9,7 +9,7 @@ import (
 )
 
 const EnvServerURL = "ADDRESS"
-const DefaultServerURL = "127.0.0.1:8080"
+const DefaultServerURL = "localhost:8080"
 
 type Handler interface {
 	Handle(w http.ResponseWriter, r *http.Request)
@@ -30,7 +30,7 @@ func (s *server) AddHandler(method, path string, handlerFn http.HandlerFunc) {
 }
 
 func (s *server) Run() error {
-	return http.ListenAndServe(getEnvString(EnvServerURL, DefaultServerURL), s.router)
+	return http.ListenAndServe(""+getEnvString(EnvServerURL, DefaultServerURL), s.router)
 }
 
 type Server interface {

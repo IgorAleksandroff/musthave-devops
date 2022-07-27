@@ -12,7 +12,7 @@ import (
 //go:generate mockery --name "Client"
 
 const EnvServerURL = "ADDRESS"
-const DefaultServerURL = "http://127.0.0.1:8080"
+const DefaultServerURL = "localhost:8080"
 
 type (
 	client struct {
@@ -29,7 +29,7 @@ type (
 
 func NewClient() Client {
 	return &client{
-		host:      getEnvString(EnvServerURL, DefaultServerURL),
+		host:      "http://" + getEnvString(EnvServerURL, DefaultServerURL),
 		transport: &http.Client{},
 	}
 }

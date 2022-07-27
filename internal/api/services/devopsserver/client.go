@@ -12,7 +12,7 @@ import (
 //go:generate mockery --name "Client"
 
 const EnvServerURL = "ADDRESS"
-const DefaultServerURL = "127.0.0.1:8080"
+const DefaultServerURL = "http://127.0.0.1:8080"
 
 type (
 	client struct {

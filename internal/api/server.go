@@ -9,7 +9,7 @@ import (
 )
 
 const EnvServerURL = "ADDRESS"
-const DefaultServerURL = "8080"
+const DefaultServerURL = ":8080"
 
 type Handler interface {
 	Handle(w http.ResponseWriter, r *http.Request)

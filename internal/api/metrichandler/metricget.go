@@ -1,27 +1,14 @@
-package metricget
+package metrichandler
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	"github.com/go-chi/chi"
 )
 
-type handler struct {
-	metricsUC metricscollection.Usecase
-}
-
-func New(
-	metricsUC metricscollection.Usecase,
-) *handler {
-	return &handler{
-		metricsUC: metricsUC,
-	}
-}
-
-func (h *handler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleMetricGet(w http.ResponseWriter, r *http.Request) {
 	var value string
 	var err error
 	metricType := chi.URLParam(r, "TYPE")

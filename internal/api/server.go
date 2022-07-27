@@ -25,8 +25,8 @@ func New() *server {
 	return &server{router: r}
 }
 
-func (s *server) AddHandler(method, path string, h Handler) {
-	s.router.MethodFunc(method, path, h.Handle)
+func (s *server) AddHandler(method, path string, handlerFn http.HandlerFunc) {
+	s.router.MethodFunc(method, path, handlerFn)
 }
 
 func (s *server) Run() error {
@@ -35,7 +35,7 @@ func (s *server) Run() error {
 
 type Server interface {
 	Run() error
-	AddHandler(method, path string, h Handler)
+	AddHandler(method, path string, handlerFn http.HandlerFunc)
 }
 
 var _ Server = &server{}

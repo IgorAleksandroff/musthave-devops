@@ -13,14 +13,14 @@ type Repository struct {
 }
 
 // GetMetric provides a mock function with given fields: name
-func (_m *Repository) GetMetric(name string) (entity.Metric, error) {
+func (_m *Repository) GetMetric(name string) (entity.Metrics, error) {
 	ret := _m.Called(name)
 
-	var r0 entity.Metric
-	if rf, ok := ret.Get(0).(func(string) entity.Metric); ok {
+	var r0 entity.Metrics
+	if rf, ok := ret.Get(0).(func(string) entity.Metrics); ok {
 		r0 = rf(name)
 	} else {
-		r0 = ret.Get(0).(entity.Metric)
+		r0 = ret.Get(0).(entity.Metrics)
 	}
 
 	var r1 error

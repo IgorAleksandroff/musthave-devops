@@ -6,14 +6,17 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 //go:generate mockery --name "Client"
 
-const DevopsServerURL = "http://127.0.0.1:8080"
+const EnvServerURL = "ADDRESS"
+const DefaultServerURL = "127.0.0.1:8080"
 
 type (
 	client struct {
+		host      string
 		transport *http.Client
 	}
 
@@ -26,6 +29,7 @@ type (
 
 func NewClient() Client {
 	return &client{
+		host:      getEnvString(EnvServerURL, DefaultServerURL),
 		transport: &http.Client{},
 	}
 }
@@ -46,7 +50,7 @@ func (c client) Do(req *http.Request) (body []byte, err error) {
 }
 
 func (c client) DoGet(path string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, DevopsServerURL+path, nil)
+	req, err := http.NewRequest(http.MethodGet, c.host+path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +68,7 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, DevopsServerURL+path, bytes.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, c.host+path, bytes.NewReader(payload))
 	if err != nil {
 		return nil, err
 	}
@@ -73,4 +77,13 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 	body, err := c.Do(req)
 
 	return body, err
+}
+
+func getEnvString(envName, defaultValue string) string {
+	value := os.Getenv(envName)
+	if value == "" {
+		log.Println("empty env")
+		return defaultValue
+	}
+	return value
 }

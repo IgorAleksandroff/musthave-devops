@@ -9,7 +9,7 @@ import (
 )
 
 func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
-	metric := Metrics{}
+	metric := entity.Metrics{}
 	if r.Body == nil {
 		http.Error(w, "empty body", http.StatusBadRequest)
 		return
@@ -34,19 +34,16 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
 			return
 		}
-
-		h.metricsUC.SaveCounterMetric(metric.ID, *metric.Delta)
 	case entity.GaugeTypeMetric:
 		if metric.Value == nil {
 			http.Error(w, "empty value for type gauge. internal error", http.StatusBadRequest)
 			return
 		}
-
-		h.metricsUC.SaveGaugeMetric(metric.ID, *metric.Value)
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return
 	}
+	h.metricsUC.SaveMetric(metric)
 
 	w.WriteHeader(http.StatusOK)
 }

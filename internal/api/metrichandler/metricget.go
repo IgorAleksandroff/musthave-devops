@@ -14,24 +14,19 @@ func (h *handler) HandleMetricGet(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "TYPE")
 	metricName := chi.URLParam(r, "NAME")
 
-	switch metricType {
-	case entity.CounterTypeMetric:
-		valueMetric, errMetric := h.metricsUC.GetCounterMetric(metricName)
-		value = fmt.Sprintf("%v", valueMetric)
-		err = errMetric
-
-	case entity.GaugeTypeMetric:
-		valueMetric, errMetric := h.metricsUC.GetGaugeMetric(metricName)
-		value = fmt.Sprintf("%v", valueMetric)
-		err = errMetric
-
-	default:
-		http.Error(w, "unknown handler", http.StatusNotImplemented)
+	metric, err := h.metricsUC.GetMetric(metricName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	switch metricType {
+	case entity.CounterTypeMetric:
+		value = fmt.Sprintf("%v", *metric.Delta)
+	case entity.GaugeTypeMetric:
+		value = fmt.Sprintf("%v", *metric.Value)
+	default:
+		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return
 	}
 

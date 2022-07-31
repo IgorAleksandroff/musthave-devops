@@ -30,18 +30,23 @@ func Test_usecase_SendMetrics(t *testing.T) {
 					"name01",
 					"name02",
 				})
-				repoMock.On("GetMetric", "name01").Return(entity.Metric{
-					Value: entity.Gauge(0.1),
-				}, nil).Once()
-				repoMock.On("GetMetric", "name02").Return(entity.Metric{
-					Value: entity.Counter(02),
-				}, nil).Once()
+				metric01 := entity.Metrics{
+					ID:    "name01",
+					MType: "gauge",
+					Value: func() *float64 { v := 0.1; return &v }(),
+				}
+				metric02 := entity.Metrics{
+					ID:    "name02",
+					MType: "counter",
+					Delta: func() *int64 { v := int64(02); return &v }(),
+				}
+
+				repoMock.On("GetMetric", "name01").Return(metric01, nil).Once()
+				repoMock.On("GetMetric", "name02").Return(metric02, nil).Once()
 
 				clientMock := &mocks2.Client{}
-				endpoint01 := "/update/gauge/name01/0.1/"
-				clientMock.On("DoPost", endpoint01, nil).Return(nil, nil).Once()
-				endpoint02 := "/update/counter/name02/2/"
-				clientMock.On("DoPost", endpoint02, nil).Return(nil, nil).Once()
+				clientMock.On("DoPost", "/update/", metric01).Return(nil, nil).Once()
+				clientMock.On("DoPost", "/update/", metric02).Return(nil, nil).Once()
 
 				return fields{
 					repository:         repoMock,
@@ -57,7 +62,7 @@ func Test_usecase_SendMetrics(t *testing.T) {
 				repoMock.On("GetMetricsName").Return([]string{
 					"name01",
 				})
-				repoMock.On("GetMetric", "name01").Return(entity.Metric{}, errors.New("err"))
+				repoMock.On("GetMetric", "name01").Return(entity.Metrics{}, errors.New("err"))
 
 				clientMock := &mocks2.Client{}
 
@@ -76,18 +81,22 @@ func Test_usecase_SendMetrics(t *testing.T) {
 					"name01",
 					"name02",
 				})
-				repoMock.On("GetMetric", "name01").Return(entity.Metric{
-					Value: entity.Gauge(0.1),
-				}, nil).Once()
-				repoMock.On("GetMetric", "name02").Return(entity.Metric{
-					Value: entity.Counter(02),
-				}, nil).Once()
+				metric01 := entity.Metrics{
+					ID:    "name01",
+					MType: "gauge",
+					Value: func() *float64 { v := 0.1; return &v }(),
+				}
+				metric02 := entity.Metrics{
+					ID:    "name02",
+					MType: "counter",
+					Delta: func() *int64 { v := int64(02); return &v }(),
+				}
+				repoMock.On("GetMetric", "name01").Return(metric01, nil).Once()
+				repoMock.On("GetMetric", "name02").Return(metric02, nil).Once()
 
 				clientMock := &mocks2.Client{}
-				endpoint01 := "/update/gauge/name01/0.1/"
-				clientMock.On("DoPost", endpoint01, nil).Return(nil, errors.New("err")).Once()
-				endpoint02 := "/update/counter/name02/2/"
-				clientMock.On("DoPost", endpoint02, nil).Return(nil, nil).Once()
+				clientMock.On("DoPost", "/update/", metric01).Return(nil, errors.New("err")).Once()
+				clientMock.On("DoPost", "/update/", metric02).Return(nil, nil).Once()
 
 				return fields{
 					repository:         repoMock,
@@ -122,8 +131,8 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
 				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return().Once()
-				repoMock.On("GetMetric", "PollCount").Return(entity.Metric{
-					Value: entity.Counter(99),
+				repoMock.On("GetMetric", "PollCount").Return(entity.Metrics{
+					Delta: func() *int64 { v := int64(99); return &v }(),
 				}, nil)
 				repoMock.On("SaveMetric", "PollCount", entity.Counter(100)).Return().Once()
 				repoMock.On("SaveMetric", mock.MatchedBy(func(name string) bool {
@@ -140,7 +149,7 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
 				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return().Once()
-				repoMock.On("GetMetric", "PollCount").Return(entity.Metric{}, errors.New("err"))
+				repoMock.On("GetMetric", "PollCount").Return(entity.Metrics{}, errors.New("err"))
 				repoMock.On("SaveMetric", "PollCount", entity.Counter(1)).Return().Once()
 				repoMock.On("SaveMetric", mock.MatchedBy(func(name string) bool {
 					return name != "PollCount"

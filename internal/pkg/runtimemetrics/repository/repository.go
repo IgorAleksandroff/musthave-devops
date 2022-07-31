@@ -5,9 +5,9 @@ import (
 )
 
 type rep struct {
-	storage map[string]entity.Metric
+	storage map[string]entity.Metrics
 }
 
 func New() *rep {
-	return &rep{storage: make(map[string]entity.Metric)}
+	return &rep{storage: make(map[string]entity.Metrics)}
 }

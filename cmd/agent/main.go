@@ -1,6 +1,10 @@
 package main
 
 import (
+	"log"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
@@ -9,8 +13,12 @@ import (
 )
 
 func main() {
-	pollInterval := time.NewTicker(2 * time.Second)
-	reportInterval := time.NewTicker(10 * time.Second)
+	pollInterval := getEnvInt("POLL_INTERVAL", 2)
+	reportInterval := getEnvInt("REPORT_INTERVAL", 10)
+	pollTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
+	reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
+	defer pollTicker.Stop()
+	defer reportTicker.Stop()
 
 	client := devopsserver.NewClient()
 	runtimeMetricsRepo := repository.New()
@@ -18,10 +26,19 @@ func main() {
 
 	for {
 		select {
-		case <-pollInterval.C:
+		case <-pollTicker.C:
 			runtimeMetricsUC.UpdateMetrics()
-		case <-reportInterval.C:
+		case <-reportTicker.C:
 			runtimeMetricsUC.SendMetrics()
 		}
 	}
+}
+
+func getEnvInt(envName string, defaultValue int) int {
+	value, err := strconv.Atoi(strings.TrimRight(os.Getenv(envName), "s"))
+	if err != nil {
+		log.Printf("error of env %s: %s", envName, err.Error())
+		return defaultValue
+	}
+	return value
 }

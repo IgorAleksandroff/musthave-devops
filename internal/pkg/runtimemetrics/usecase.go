@@ -4,5 +4,5 @@ package runtimemetrics
 
 type Usecase interface {
 	UpdateMetrics()
-	SendMetrics() error
+	SendMetrics()
 }

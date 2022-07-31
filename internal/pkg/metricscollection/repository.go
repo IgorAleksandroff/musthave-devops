@@ -9,4 +9,5 @@ type Repository interface {
 	GetMetric(name string) (*entity.Metrics, error)
 	GetMetrics() map[string]entity.Metrics
 	FlushMemo() error
+	MemSync()
 }

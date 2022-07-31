@@ -17,6 +17,8 @@ func main() {
 	reportInterval := getEnvInt("REPORT_INTERVAL", 10)
 	pollTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
+	defer pollTicker.Stop()
+	defer reportTicker.Stop()
 
 	client := devopsserver.NewClient()
 	runtimeMetricsRepo := repository.New()

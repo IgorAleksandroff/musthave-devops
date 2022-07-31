@@ -6,7 +6,7 @@ import (
 )
 
 func (r rep) FlushMemo() error {
-	file, err := os.OpenFile(r.cfg.StorePath, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(r.cfg.StorePath, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}

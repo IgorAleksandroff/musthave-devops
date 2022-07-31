@@ -32,5 +32,7 @@ func main() {
 	server.AddHandler(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
 	server.AddHandler(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
 
+	metricsRepo.MemSync()
+
 	log.Fatal(server.Run())
 }

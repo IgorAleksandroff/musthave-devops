@@ -74,7 +74,7 @@ var _ Server = &server{}
 func readConfig() config {
 	return config{
 		host:          getEnvString(EnvServerURL, DefaultServerURL),
-		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, DefaultStoreInterval)),
+		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, DefaultStoreInterval)) * time.Second,
 		StorePath:     getEnvString(EnvStoreFile, DefaultStoreFile),
 		Restore:       getEnvBool(EnvRestore, DefaultRestore),
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -11,14 +12,17 @@ import (
 )
 
 func main() {
+	ctx, closeCtx := context.WithCancel(context.Background())
+	defer closeCtx()
+
 	server := api.New()
 	config := server.GetConfig()
 
-	var memSync bool
-	if config.StoreInterval == 0 {
-		memSync = true
-	}
-	metricsRepo := repository.New(config.StorePath, memSync, config.Restore)
+	metricsRepo := repository.New(ctx, repository.Config{
+		StorePath:     config.StorePath,
+		StoreInterval: config.StoreInterval,
+		Restore:       config.Restore,
+	})
 	metricsUC := usecase.New(metricsRepo)
 	metricHandler := metrichandler.New(metricsUC)
 

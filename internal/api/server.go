@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 )
@@ -24,7 +26,7 @@ type Handler interface {
 
 type config struct {
 	host          string
-	StoreInterval int
+	StoreInterval time.Duration
 	StorePath     string
 	Restore       bool
 }
@@ -72,7 +74,7 @@ var _ Server = &server{}
 func readConfig() config {
 	return config{
 		host:          getEnvString(EnvServerURL, DefaultServerURL),
-		StoreInterval: getEnvInt(EnvStoreInterval, DefaultStoreInterval),
+		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, DefaultStoreInterval)),
 		StorePath:     getEnvString(EnvStoreFile, DefaultStoreFile),
 		Restore:       getEnvBool(EnvRestore, DefaultRestore),
 	}
@@ -88,7 +90,7 @@ func getEnvString(envName, defaultValue string) string {
 }
 
 func getEnvInt(envName string, defaultValue int) int {
-	value, err := strconv.Atoi(os.Getenv(envName))
+	value, err := strconv.Atoi(strings.TrimRight(os.Getenv(envName), "s"))
 	if err != nil {
 		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue

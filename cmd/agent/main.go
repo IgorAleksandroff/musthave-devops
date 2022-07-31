@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
@@ -32,7 +33,7 @@ func main() {
 }
 
 func getEnvInt(envName string, defaultValue int) int {
-	value, err := strconv.Atoi(os.Getenv(envName))
+	value, err := strconv.Atoi(strings.TrimRight(os.Getenv(envName), "s"))
 	if err != nil {
 		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue

@@ -13,6 +13,20 @@ type Repository struct {
 	mock.Mock
 }
 
+// FlushMemo provides a mock function with given fields:
+func (_m *Repository) FlushMemo() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetMetric provides a mock function with given fields: name
 func (_m *Repository) GetMetric(name string) (*entity.Metrics, error) {
 	ret := _m.Called(name)

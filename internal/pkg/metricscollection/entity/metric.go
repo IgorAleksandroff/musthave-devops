@@ -1,5 +1,10 @@
 package entity
 
+import (
+	"encoding/json"
+	"os"
+)
+
 const GaugeTypeMetric = "gauge"
 const CounterTypeMetric = "counter"
 
@@ -21,4 +26,20 @@ func CopyMetric(mIn Metrics) Metrics {
 		mOut.Value = &p
 	}
 	return mOut
+}
+
+func DownloadMetrics(path string) (map[string]Metrics, error) {
+	metricDB := make(map[string]Metrics)
+	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return metricDB, err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err = decoder.Decode(&metricDB); err != nil {
+		return metricDB, err
+	}
+
+	return metricDB, nil
 }

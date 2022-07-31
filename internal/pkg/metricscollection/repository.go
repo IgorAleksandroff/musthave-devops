@@ -8,4 +8,5 @@ type Repository interface {
 	SaveMetric(value entity.Metrics)
 	GetMetric(name string) (*entity.Metrics, error)
 	GetMetrics() map[string]entity.Metrics
+	FlushMemo() error
 }

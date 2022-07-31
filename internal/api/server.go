@@ -24,9 +24,9 @@ type Handler interface {
 
 type config struct {
 	host          string
-	storeInterval int
-	storePath     string
-	restore       bool
+	StoreInterval int
+	StorePath     string
+	Restore       bool
 }
 
 type server struct {
@@ -38,7 +38,10 @@ func New() *server {
 	r := chi.NewRouter()
 	cfg := readConfig()
 
-	return &server{router: r, cfg: cfg}
+	return &server{
+		router: r,
+		cfg:    cfg,
+	}
 }
 
 func (s *server) AddHandler(method, path string, handlerFn http.HandlerFunc) {
@@ -48,6 +51,15 @@ func (s *server) AddHandler(method, path string, handlerFn http.HandlerFunc) {
 func (s *server) Run() error {
 	log.Printf("Start Server with config: %+v", s.cfg)
 	return http.ListenAndServe(s.cfg.host, s.router)
+}
+
+func (s *server) GetConfig() config {
+	return config{
+		host:          s.cfg.host,
+		StoreInterval: s.cfg.StoreInterval,
+		StorePath:     s.cfg.StorePath,
+		Restore:       s.cfg.Restore,
+	}
 }
 
 type Server interface {
@@ -60,9 +72,9 @@ var _ Server = &server{}
 func readConfig() config {
 	return config{
 		host:          getEnvString(EnvServerURL, DefaultServerURL),
-		storeInterval: getEnvInt(EnvStoreInterval, DefaultStoreInterval),
-		storePath:     getEnvString(EnvServerURL, DefaultStoreFile),
-		restore:       getEnvBool(EnvRestore, DefaultRestore),
+		StoreInterval: getEnvInt(EnvStoreInterval, DefaultStoreInterval),
+		StorePath:     getEnvString(EnvStoreFile, DefaultStoreFile),
+		Restore:       getEnvBool(EnvRestore, DefaultRestore),
 	}
 }
 

@@ -11,12 +11,17 @@ import (
 )
 
 func main() {
-	metricsRepo := repository.New()
-	metricsUC := usecase.New(metricsRepo)
+	server := api.New()
+	config := server.GetConfig()
 
+	var memSync bool
+	if config.StoreInterval == 0 {
+		memSync = true
+	}
+	metricsRepo := repository.New(config.StorePath, memSync, config.Restore)
+	metricsUC := usecase.New(metricsRepo)
 	metricHandler := metrichandler.New(metricsUC)
 
-	server := api.New()
 	server.AddHandler(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
 	server.AddHandler(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
 	server.AddHandler(http.MethodGet, "/", metricHandler.HandleMetricsGet)

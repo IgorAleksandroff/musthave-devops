@@ -1,15 +1,34 @@
 package repository
 
-import "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
+import (
+	"context"
+	"log"
+	"time"
 
-type rep struct {
-	gaugeDB   map[string]entity.MetricGauge
-	counterDB map[string]entity.MetricCounter
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
+)
+
+type Config struct {
+	StorePath     string
+	StoreInterval time.Duration
+	Restore       bool
 }
 
-func New() *rep {
-	return &rep{
-		gaugeDB:   make(map[string]entity.MetricGauge),
-		counterDB: make(map[string]entity.MetricCounter),
+type rep struct {
+	ctx      context.Context
+	metricDB map[string]entity.Metrics
+	cfg      Config
+}
+
+func New(ctx context.Context, cfg Config) *rep {
+	metricDB := make(map[string]entity.Metrics)
+	var err error
+
+	if cfg.Restore && cfg.StorePath != "" {
+		if metricDB, err = entity.DownloadMetrics(cfg.StorePath); err != nil {
+			log.Printf("error to restore metrics from %s: %s.\n", cfg.StorePath, err.Error())
+		}
 	}
+
+	return &rep{ctx: ctx, metricDB: metricDB, cfg: cfg}
 }

@@ -12,7 +12,7 @@ import (
 func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	metric := Metrics{}
+	metric := entity.Metrics{}
 	if r.Body == nil {
 		http.Error(w, "empty body", http.StatusBadRequest)
 		return
@@ -29,27 +29,21 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 
 	switch metric.MType {
 	case entity.CounterTypeMetric:
-		valueMetric, errMetric := h.metricsUC.GetCounterMetric(metric.ID)
-		metric.Delta = &valueMetric
-		if errMetric != nil {
-			http.Error(w, errMetric.Error(), http.StatusNotFound)
-			return
-		}
 	case entity.GaugeTypeMetric:
-		valueMetric, errMetric := h.metricsUC.GetGaugeMetric(metric.ID)
-		metric.Value = &valueMetric
-		if errMetric != nil {
-			http.Error(w, errMetric.Error(), http.StatusNotFound)
-			return
-		}
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return
 	}
 
+	m, errMetric := h.metricsUC.GetMetric(metric.ID)
+	if errMetric != nil || metric.MType != m.MType {
+		http.Error(w, errMetric.Error(), http.StatusNotFound)
+		return
+	}
+
 	buf := bytes.NewBuffer([]byte{})
 	jsonEncoder := json.NewEncoder(buf)
-	err = jsonEncoder.Encode(metric)
+	err = jsonEncoder.Encode(m)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

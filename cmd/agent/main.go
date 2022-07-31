@@ -34,7 +34,7 @@ func main() {
 func getEnvInt(envName string, defaultValue int) int {
 	value, err := strconv.Atoi(os.Getenv(envName))
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue
 	}
 	return value

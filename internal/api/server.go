@@ -69,7 +69,7 @@ func readConfig() config {
 func getEnvString(envName, defaultValue string) string {
 	value := os.Getenv(envName)
 	if value == "" {
-		log.Println("empty env")
+		log.Printf("empty env: %s", envName)
 		return defaultValue
 	}
 	return value
@@ -78,7 +78,7 @@ func getEnvString(envName, defaultValue string) string {
 func getEnvInt(envName string, defaultValue int) int {
 	value, err := strconv.Atoi(os.Getenv(envName))
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue
 	}
 	return value
@@ -87,7 +87,7 @@ func getEnvInt(envName string, defaultValue int) int {
 func getEnvBool(envName string, defaultValue bool) bool {
 	value, err := strconv.ParseBool(os.Getenv(envName))
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue
 	}
 	return value

@@ -13,15 +13,17 @@ type Repository struct {
 	mock.Mock
 }
 
-// GetCounterMetric provides a mock function with given fields: name
-func (_m *Repository) GetCounterMetric(name string) (int64, error) {
+// GetMetric provides a mock function with given fields: name
+func (_m *Repository) GetMetric(name string) (*entity.Metrics, error) {
 	ret := _m.Called(name)
 
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
+	var r0 *entity.Metrics
+	if rf, ok := ret.Get(0).(func(string) *entity.Metrics); ok {
 		r0 = rf(name)
 	} else {
-		r0 = ret.Get(0).(int64)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Metrics)
+		}
 	}
 
 	var r1 error
@@ -34,67 +36,25 @@ func (_m *Repository) GetCounterMetric(name string) (int64, error) {
 	return r0, r1
 }
 
-// GetCounterMetrics provides a mock function with given fields:
-func (_m *Repository) GetCounterMetrics() map[string]entity.MetricCounter {
+// GetMetrics provides a mock function with given fields:
+func (_m *Repository) GetMetrics() map[string]entity.Metrics {
 	ret := _m.Called()
 
-	var r0 map[string]entity.MetricCounter
-	if rf, ok := ret.Get(0).(func() map[string]entity.MetricCounter); ok {
+	var r0 map[string]entity.Metrics
+	if rf, ok := ret.Get(0).(func() map[string]entity.Metrics); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]entity.MetricCounter)
+			r0 = ret.Get(0).(map[string]entity.Metrics)
 		}
 	}
 
 	return r0
 }
 
-// GetGaugeMetric provides a mock function with given fields: name
-func (_m *Repository) GetGaugeMetric(name string) (float64, error) {
-	ret := _m.Called(name)
-
-	var r0 float64
-	if rf, ok := ret.Get(0).(func(string) float64); ok {
-		r0 = rf(name)
-	} else {
-		r0 = ret.Get(0).(float64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetGaugeMetrics provides a mock function with given fields:
-func (_m *Repository) GetGaugeMetrics() map[string]entity.MetricGauge {
-	ret := _m.Called()
-
-	var r0 map[string]entity.MetricGauge
-	if rf, ok := ret.Get(0).(func() map[string]entity.MetricGauge); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]entity.MetricGauge)
-		}
-	}
-
-	return r0
-}
-
-// SaveCounterMetric provides a mock function with given fields: name, value
-func (_m *Repository) SaveCounterMetric(name string, value int64) {
-	_m.Called(name, value)
-}
-
-// SaveGaugeMetric provides a mock function with given fields: name, value
-func (_m *Repository) SaveGaugeMetric(name string, value float64) {
-	_m.Called(name, value)
+// SaveMetric provides a mock function with given fields: value
+func (_m *Repository) SaveMetric(value entity.Metrics) {
+	_m.Called(value)
 }
 
 type NewRepositoryT interface {

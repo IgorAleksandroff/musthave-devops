@@ -82,6 +82,20 @@ func (_m *Client) DoPost(url string, data interface{}) ([]byte, error) {
 	return r0, r1
 }
 
+// GetConfig provides a mock function with given fields:
+func (_m *Client) GetConfig() devopsserver.config {
+	ret := _m.Called()
+
+	var r0 devopsserver.config
+	if rf, ok := ret.Get(0).(func() devopsserver.config); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(devopsserver.config)
+	}
+
+	return r0
+}
+
 type NewClientT interface {
 	mock.TestingT
 	Cleanup(func())

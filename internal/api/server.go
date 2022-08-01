@@ -1,6 +1,7 @@
 package api
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -11,14 +12,16 @@ import (
 	"github.com/go-chi/chi"
 )
 
-const EnvServerURL = "ADDRESS"
-const EnvStoreInterval = "STORE_INTERVAL"
-const EnvStoreFile = "STORE_FILE"
-const EnvRestore = "RESTORE"
-const DefaultServerURL = "localhost:8080"
-const DefaultStoreInterval = 300
-const DefaultStoreFile = "/tmp/devops-metrics-db.json"
-const DefaultRestore = true
+const (
+	EnvServerURL         = "ADDRESS"
+	EnvStoreInterval     = "STORE_INTERVAL"
+	EnvStoreFile         = "STORE_FILE"
+	EnvRestore           = "RESTORE"
+	DefaultServerURL     = "localhost:8080"
+	DefaultStoreInterval = 300
+	DefaultStoreFile     = "/tmp/devops-metrics-db.json"
+	DefaultRestore       = true
+)
 
 type Handler interface {
 	Handle(w http.ResponseWriter, r *http.Request)
@@ -72,11 +75,17 @@ type Server interface {
 var _ Server = &server{}
 
 func readConfig() config {
+	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
+	storeIntervalFlag := flag.Int("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
+	storePathFlag := flag.String("f", DefaultStoreFile, "строка, имя файла, где хранятся значения")
+	restoreFlag := flag.Bool("r", DefaultRestore, "булево значение (true/false), определяющее, загружать или нет начальные значения")
+	flag.Parse()
+
 	return config{
-		host:          getEnvString(EnvServerURL, DefaultServerURL),
-		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, DefaultStoreInterval)) * time.Second,
-		StorePath:     getEnvString(EnvStoreFile, ""),
-		Restore:       getEnvBool(EnvRestore, DefaultRestore),
+		host:          getEnvString(EnvServerURL, *hostFlag),
+		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, *storeIntervalFlag)) * time.Second,
+		StorePath:     getEnvString(EnvStoreFile, *storePathFlag),
+		Restore:       getEnvBool(EnvRestore, *restoreFlag),
 	}
 }
 

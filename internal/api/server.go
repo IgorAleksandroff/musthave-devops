@@ -27,7 +27,7 @@ type Handler interface {
 	Handle(w http.ResponseWriter, r *http.Request)
 }
 
-type config struct {
+type Config struct {
 	host          string
 	StoreInterval time.Duration
 	StorePath     string
@@ -35,7 +35,7 @@ type config struct {
 }
 
 type server struct {
-	cfg    config
+	cfg    Config
 	router *chi.Mux
 }
 
@@ -58,8 +58,8 @@ func (s *server) Run() error {
 	return http.ListenAndServe(s.cfg.host, s.router)
 }
 
-func (s *server) GetConfig() config {
-	return config{
+func (s *server) GetConfig() Config {
+	return Config{
 		host:          s.cfg.host,
 		StoreInterval: s.cfg.StoreInterval,
 		StorePath:     s.cfg.StorePath,
@@ -74,14 +74,14 @@ type Server interface {
 
 var _ Server = &server{}
 
-func readConfig() config {
+func readConfig() Config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	storeIntervalFlag := flag.Int("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
 	storePathFlag := flag.String("f", DefaultStoreFile, "строка, имя файла, где хранятся значения")
 	restoreFlag := flag.Bool("r", DefaultRestore, "булево значение (true/false), определяющее, загружать или нет начальные значения")
 	flag.Parse()
 
-	return config{
+	return Config{
 		host:          getEnvString(EnvServerURL, *hostFlag),
 		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, *storeIntervalFlag)) * time.Second,
 		StorePath:     getEnvString(EnvStoreFile, *storePathFlag),

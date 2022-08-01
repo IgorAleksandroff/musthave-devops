@@ -5,6 +5,8 @@ package mocks
 import (
 	http "net/http"
 
+	devopsserver "github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -83,14 +85,14 @@ func (_m *Client) DoPost(url string, data interface{}) ([]byte, error) {
 }
 
 // GetConfig provides a mock function with given fields:
-func (_m *Client) GetConfig() devopsserver.config {
+func (_m *Client) GetConfig() devopsserver.Config {
 	ret := _m.Called()
 
-	var r0 devopsserver.config
-	if rf, ok := ret.Get(0).(func() devopsserver.config); ok {
+	var r0 devopsserver.Config
+	if rf, ok := ret.Get(0).(func() devopsserver.Config); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(devopsserver.config)
+		r0 = ret.Get(0).(devopsserver.Config)
 	}
 
 	return r0

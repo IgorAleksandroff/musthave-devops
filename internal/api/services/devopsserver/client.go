@@ -25,13 +25,13 @@ const (
 )
 
 type (
-	config struct {
+	Config struct {
 		host           string
 		PollInterval   time.Duration
 		ReportInterval time.Duration
 	}
 	client struct {
-		cfg       config
+		cfg       Config
 		transport *http.Client
 	}
 
@@ -39,7 +39,7 @@ type (
 		Do(req *http.Request) (body []byte, err error)
 		DoGet(url string) ([]byte, error)
 		DoPost(url string, data interface{}) ([]byte, error)
-		GetConfig() config
+		GetConfig() Config
 	}
 )
 
@@ -97,8 +97,8 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 	return body, err
 }
 
-func (c client) GetConfig() config {
-	return config{
+func (c client) GetConfig() Config {
+	return Config{
 		host:           c.cfg.host,
 		PollInterval:   c.cfg.PollInterval,
 		ReportInterval: c.cfg.ReportInterval,
@@ -107,13 +107,13 @@ func (c client) GetConfig() config {
 
 var _ Client = &client{}
 
-func readConfig() config {
+func readConfig() Config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Int("p", DefaultPollInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
 	reportIntervalFlag := flag.Int("r", DefaultReportInterval, "строка, имя файла, где хранятся значения")
 	flag.Parse()
 
-	return config{
+	return Config{
 		host:           "http://" + getEnvString(EnvServerURL, *hostFlag),
 		PollInterval:   time.Duration(getEnvInt(EnvPollInterval, *pollIntervalFlag)) * time.Second,
 		ReportInterval: time.Duration(getEnvInt(EnvReportInterval, *reportIntervalFlag)) * time.Second,

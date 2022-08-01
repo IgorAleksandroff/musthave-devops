@@ -17,7 +17,7 @@ const (
 	EnvStoreFile         = "STORE_FILE"
 	EnvRestore           = "RESTORE"
 	DefaultServerURL     = "localhost:8080"
-	DefaultStoreInterval = 300
+	DefaultStoreInterval = 300 * time.Second
 	DefaultStoreFile     = "/tmp/devops-metrics-db.json"
 	DefaultRestore       = true
 )

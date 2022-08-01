@@ -18,8 +18,8 @@ const (
 	EnvPollInterval       = "POLL_INTERVAL"
 	EnvReportInterval     = "REPORT_INTERVAL"
 	DefaultServerURL      = "localhost:8080"
-	DefaultPollInterval   = 2
-	DefaultReportInterval = 10
+	DefaultPollInterval   = 2 * time.Second
+	DefaultReportInterval = 10 * time.Second
 )
 
 type (

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -76,14 +75,14 @@ var _ Server = &server{}
 
 func readConfig() Config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
-	storeIntervalFlag := flag.Int("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
+	storeIntervalFlag := flag.Duration("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
 	storePathFlag := flag.String("f", DefaultStoreFile, "строка, имя файла, где хранятся значения")
 	restoreFlag := flag.Bool("r", DefaultRestore, "булево значение (true/false), определяющее, загружать или нет начальные значения")
 	flag.Parse()
 
 	return Config{
 		host:          getEnvString(EnvServerURL, *hostFlag),
-		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, *storeIntervalFlag)) * time.Second,
+		StoreInterval: getEnvDuration(EnvStoreInterval, *storeIntervalFlag),
 		StorePath:     getEnvString(EnvStoreFile, *storePathFlag),
 		Restore:       getEnvBool(EnvRestore, *restoreFlag),
 	}
@@ -98,8 +97,8 @@ func getEnvString(envName, defaultValue string) string {
 	return value
 }
 
-func getEnvInt(envName string, defaultValue int) int {
-	value, err := strconv.Atoi(strings.TrimRight(os.Getenv(envName), "s"))
+func getEnvDuration(envName string, defaultValue time.Duration) time.Duration {
+	value, err := time.ParseDuration(os.Getenv(envName))
 	if err != nil {
 		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue

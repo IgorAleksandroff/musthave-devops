@@ -8,8 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -45,6 +43,7 @@ type (
 
 func NewClient() Client {
 	cfg := readConfig()
+	log.Printf("Creat Client with config: %+v", cfg)
 
 	return &client{
 		cfg:       cfg,
@@ -109,14 +108,14 @@ var _ Client = &client{}
 
 func readConfig() Config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
-	pollIntervalFlag := flag.Int("p", DefaultPollInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
-	reportIntervalFlag := flag.Int("r", DefaultReportInterval, "строка, имя файла, где хранятся значения")
+	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
+	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "строка, имя файла, где хранятся значения")
 	flag.Parse()
 
 	return Config{
 		host:           "http://" + getEnvString(EnvServerURL, *hostFlag),
-		PollInterval:   time.Duration(getEnvInt(EnvPollInterval, *pollIntervalFlag)) * time.Second,
-		ReportInterval: time.Duration(getEnvInt(EnvReportInterval, *reportIntervalFlag)) * time.Second,
+		PollInterval:   getEnvDuration(EnvPollInterval, *pollIntervalFlag),
+		ReportInterval: getEnvDuration(EnvReportInterval, *reportIntervalFlag),
 	}
 }
 
@@ -129,8 +128,8 @@ func getEnvString(envName, defaultValue string) string {
 	return value
 }
 
-func getEnvInt(envName string, defaultValue int) int {
-	value, err := strconv.Atoi(strings.TrimRight(os.Getenv(envName), "s"))
+func getEnvDuration(envName string, defaultValue time.Duration) time.Duration {
+	value, err := time.ParseDuration(os.Getenv(envName))
 	if err != nil {
 		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue

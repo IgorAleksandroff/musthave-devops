@@ -108,8 +108,8 @@ var _ Client = &client{}
 
 func readConfig() Config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
-	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
-	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "строка, имя файла, где хранятся значения")
+	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "частота обновления метрик в секундах")
+	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "частота отправки метрик в секундах")
 	flag.Parse()
 
 	return Config{

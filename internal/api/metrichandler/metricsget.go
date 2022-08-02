@@ -13,5 +13,6 @@ func (h *handler) HandleMetricsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metricsValue := h.metricsUC.GetMetricsValue()
+	w.Header().Set("content-type", "text/html")
 	tmpl.Execute(w, metricsValue)
 }

@@ -1,11 +1,12 @@
 package metricscollection
 
+import "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
+
 //go:generate mockery --name Usecase
 
 type Usecase interface {
-	SaveGaugeMetric(name string, value float64)
-	SaveCounterMetric(name string, value int64)
-	GetGaugeMetric(name string) (float64, error)
-	GetCounterMetric(name string) (int64, error)
+	SaveMetric(value entity.Metrics)
+	SaveCounterMetric(value entity.Metrics)
+	GetMetric(name string) (*entity.Metrics, error)
 	GetMetricsValue() map[string]string
 }

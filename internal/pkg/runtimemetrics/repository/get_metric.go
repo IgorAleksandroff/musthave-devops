@@ -6,7 +6,7 @@ import (
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/entity"
 )
 
-func (r rep) GetMetric(name string) (m entity.Metric, err error) {
+func (r rep) GetMetric(name string) (m entity.Metrics, err error) {
 	if metric, ok := r.storage[name]; ok {
 		return metric, nil
 	}

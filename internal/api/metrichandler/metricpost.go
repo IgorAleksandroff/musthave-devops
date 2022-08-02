@@ -1,29 +1,21 @@
-package metricpost
+package metrichandler
 
 import (
 	"net/http"
 	"strconv"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	"github.com/go-chi/chi"
 )
 
-type handler struct {
-	metricsUC metricscollection.Usecase
-}
-
-func New(
-	metricsUC metricscollection.Usecase,
-) *handler {
-	return &handler{
-		metricsUC: metricsUC,
-	}
-}
-
-func (h *handler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "TYPE")
 	metricName := chi.URLParam(r, "NAME")
+
+	metric := entity.Metrics{
+		ID:    metricName,
+		MType: metricType,
+	}
 
 	switch metricType {
 	case entity.CounterTypeMetric:
@@ -33,19 +25,21 @@ func (h *handler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.metricsUC.SaveCounterMetric(metricName, counterValue)
+		metric.Delta = &counterValue
+		h.metricsUC.SaveCounterMetric(metric)
+
 	case entity.GaugeTypeMetric:
 		gaugeValue, err := strconv.ParseFloat(chi.URLParam(r, "VALUE"), 64)
 		if err != nil {
 			http.Error(w, "can't parse a float64. internal error", http.StatusBadRequest)
 			return
 		}
+		metric.Value = &gaugeValue
+		h.metricsUC.SaveMetric(metric)
 
-		h.metricsUC.SaveGaugeMetric(metricName, gaugeValue)
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 }

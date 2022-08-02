@@ -9,18 +9,21 @@ import (
 )
 
 func main() {
-	pollInterval := time.NewTicker(2 * time.Second)
-	reportInterval := time.NewTicker(10 * time.Second)
-
 	client := devopsserver.NewClient()
 	runtimeMetricsRepo := repository.New()
 	runtimeMetricsUC := usecase.New(runtimeMetricsRepo, client)
 
+	config := client.GetConfig()
+	pollTicker := time.NewTicker(config.PollInterval)
+	reportTicker := time.NewTicker(config.ReportInterval)
+	defer pollTicker.Stop()
+	defer reportTicker.Stop()
+
 	for {
 		select {
-		case <-pollInterval.C:
+		case <-pollTicker.C:
 			runtimeMetricsUC.UpdateMetrics()
-		case <-reportInterval.C:
+		case <-reportTicker.C:
 			runtimeMetricsUC.SendMetrics()
 		}
 	}

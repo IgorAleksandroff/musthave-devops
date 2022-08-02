@@ -3,7 +3,6 @@ package api
 import (
 	"compress/gzip"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -76,31 +75,11 @@ func gzipHandle(next http.Handler) http.Handler {
 	})
 }
 
-func LengthHandle(w http.ResponseWriter, r *http.Request) {
-	// переменная reader будет равна r.Body или *gzip.Reader
-	var reader io.Reader
-
-	if r.Header.Get(`Content-Encoding`) == `gzip` {
-		gz, err := gzip.NewReader(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		r.Body = gz
-		defer gz.Close()
-	}
-
-	body, err := io.ReadAll(reader)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Fprintf(w, "Length: %d", len(body))
-}
-
 func New() *server {
 	r := chi.NewRouter()
 	cfg := readConfig()
+
+	r.Use(gzipHandle)
 
 	return &server{
 		router: r,
@@ -114,7 +93,7 @@ func (s *server) AddHandler(method, path string, handlerFn http.HandlerFunc) {
 
 func (s *server) Run() error {
 	log.Printf("Start Server with config: %+v", s.cfg)
-	return http.ListenAndServe(s.cfg.host, gzipHandle(s.router))
+	return http.ListenAndServe(s.cfg.host, s.router)
 }
 
 func (s *server) GetConfig() Config {

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/IgorAleksandroff/musthave-devops/cmd/environment/serverconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repository"
@@ -15,8 +16,8 @@ func main() {
 	ctx, closeCtx := context.WithCancel(context.Background())
 	defer closeCtx()
 
-	server := api.New()
-	config := server.GetConfig()
+	config := serverconfig.Read()
+	server := api.New(config.Host)
 
 	metricsRepo := repository.New(ctx, repository.Config{
 		StorePath:     config.StorePath,

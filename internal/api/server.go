@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/go-chi/chi"
 )
 
-type Handler interface {
-	Handle(w http.ResponseWriter, r *http.Request)
+type Server interface {
+	Run() error
 }
 
 type server struct {
@@ -52,10 +54,18 @@ func gzipHandle(next http.Handler) http.Handler {
 	})
 }
 
-func New(host string) *server {
+func New(host string, metricsUC metricscollection.Usecase) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipHandle)
+
+	metricHandler := metrichandler.New(metricsUC)
+
+	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
+	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
+	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
+	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
+	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
 
 	return &server{
 		router: r,
@@ -63,17 +73,8 @@ func New(host string) *server {
 	}
 }
 
-func (s *server) AddHandler(method, path string, handlerFn http.HandlerFunc) {
-	s.router.MethodFunc(method, path, handlerFn)
-}
-
 func (s *server) Run() error {
 	return http.ListenAndServe(s.host, s.router)
-}
-
-type Server interface {
-	Run() error
-	AddHandler(method, path string, handlerFn http.HandlerFunc)
 }
 
 var _ Server = &server{}

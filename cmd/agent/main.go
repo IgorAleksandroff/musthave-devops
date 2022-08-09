@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/cmd/environment/clientconfig"
+	"github.com/IgorAleksandroff/musthave-devops/configuration/clientconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/repository"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/usecase"

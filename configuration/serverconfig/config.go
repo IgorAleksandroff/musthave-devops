@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/cmd/environment"
+	"github.com/IgorAleksandroff/musthave-devops/configuration"
 )
 
 const (
@@ -34,10 +34,10 @@ func Read() config {
 	flag.Parse()
 
 	cfg := config{
-		Host:          environment.GetEnvString(EnvServerURL, *hostFlag),
-		StoreInterval: environment.GetEnvDuration(EnvStoreInterval, *storeIntervalFlag),
-		StorePath:     environment.GetEnvString(EnvStoreFile, *storePathFlag),
-		Restore:       environment.GetEnvBool(EnvRestore, *restoreFlag),
+		Host:          configuration.GetEnvString(EnvServerURL, *hostFlag),
+		StoreInterval: configuration.GetEnvDuration(EnvStoreInterval, *storeIntervalFlag),
+		StorePath:     configuration.GetEnvString(EnvStoreFile, *storePathFlag),
+		Restore:       configuration.GetEnvBool(EnvRestore, *restoreFlag),
 	}
 
 	log.Printf("Parsed Server config: %+v", cfg)

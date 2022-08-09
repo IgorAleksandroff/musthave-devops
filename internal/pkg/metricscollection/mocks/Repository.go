@@ -3,8 +3,7 @@
 package mocks
 
 import (
-	entity "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
-
+	metricscollection "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -13,30 +12,16 @@ type Repository struct {
 	mock.Mock
 }
 
-// FlushMemo provides a mock function with given fields:
-func (_m *Repository) FlushMemo() error {
-	ret := _m.Called()
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetMetric provides a mock function with given fields: name
-func (_m *Repository) GetMetric(name string) (*entity.Metrics, error) {
+func (_m *Repository) GetMetric(name string) (*metricscollection.Metrics, error) {
 	ret := _m.Called(name)
 
-	var r0 *entity.Metrics
-	if rf, ok := ret.Get(0).(func(string) *entity.Metrics); ok {
+	var r0 *metricscollection.Metrics
+	if rf, ok := ret.Get(0).(func(string) *metricscollection.Metrics); ok {
 		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.Metrics)
+			r0 = ret.Get(0).(*metricscollection.Metrics)
 		}
 	}
 
@@ -51,15 +36,15 @@ func (_m *Repository) GetMetric(name string) (*entity.Metrics, error) {
 }
 
 // GetMetrics provides a mock function with given fields:
-func (_m *Repository) GetMetrics() map[string]entity.Metrics {
+func (_m *Repository) GetMetrics() map[string]metricscollection.Metrics {
 	ret := _m.Called()
 
-	var r0 map[string]entity.Metrics
-	if rf, ok := ret.Get(0).(func() map[string]entity.Metrics); ok {
+	var r0 map[string]metricscollection.Metrics
+	if rf, ok := ret.Get(0).(func() map[string]metricscollection.Metrics); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]entity.Metrics)
+			r0 = ret.Get(0).(map[string]metricscollection.Metrics)
 		}
 	}
 
@@ -67,7 +52,7 @@ func (_m *Repository) GetMetrics() map[string]entity.Metrics {
 }
 
 // SaveMetric provides a mock function with given fields: value
-func (_m *Repository) SaveMetric(value entity.Metrics) {
+func (_m *Repository) SaveMetric(value metricscollection.Metrics) {
 	_m.Called(value)
 }
 

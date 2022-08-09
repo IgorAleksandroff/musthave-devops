@@ -3,8 +3,7 @@
 package mocks
 
 import (
-	entity "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
-
+	metricscollection "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,15 +13,15 @@ type Usecase struct {
 }
 
 // GetMetric provides a mock function with given fields: name
-func (_m *Usecase) GetMetric(name string) (*entity.Metrics, error) {
+func (_m *Usecase) GetMetric(name string) (*metricscollection.Metrics, error) {
 	ret := _m.Called(name)
 
-	var r0 *entity.Metrics
-	if rf, ok := ret.Get(0).(func(string) *entity.Metrics); ok {
+	var r0 *metricscollection.Metrics
+	if rf, ok := ret.Get(0).(func(string) *metricscollection.Metrics); ok {
 		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.Metrics)
+			r0 = ret.Get(0).(*metricscollection.Metrics)
 		}
 	}
 
@@ -53,12 +52,12 @@ func (_m *Usecase) GetMetricsValue() map[string]string {
 }
 
 // SaveCounterMetric provides a mock function with given fields: value
-func (_m *Usecase) SaveCounterMetric(value entity.Metrics) {
+func (_m *Usecase) SaveCounterMetric(value metricscollection.Metrics) {
 	_m.Called(value)
 }
 
 // SaveMetric provides a mock function with given fields: value
-func (_m *Usecase) SaveMetric(value entity.Metrics) {
+func (_m *Usecase) SaveMetric(value metricscollection.Metrics) {
 	_m.Called(value)
 }
 

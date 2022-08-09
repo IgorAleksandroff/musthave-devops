@@ -1,4 +1,4 @@
-package entity
+package metricscollection
 
 import (
 	"encoding/json"

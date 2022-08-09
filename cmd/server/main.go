@@ -6,8 +6,7 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/configuration/serverconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repository"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/usecase"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 )
 
 func main() {
@@ -16,12 +15,12 @@ func main() {
 
 	config := serverconfig.Read()
 
-	metricsRepo := repository.New(ctx, repository.Config{
+	metricsRepo := metricscollection.NewRepository(ctx, metricscollection.Config{
 		StorePath:     config.StorePath,
 		StoreInterval: config.StoreInterval,
 		Restore:       config.Restore,
 	})
-	metricsUC := usecase.New(metricsRepo)
+	metricsUC := metricscollection.NewUsecase(metricsRepo)
 
 	server := api.New(config.Host, metricsUC)
 

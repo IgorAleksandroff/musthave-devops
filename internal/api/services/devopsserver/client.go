@@ -68,7 +68,7 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(`Content-Type`, `text/plain`)
+	req.Header.Set(`Content-Type`, `application/json`)
 
 	body, err := c.Do(req)
 

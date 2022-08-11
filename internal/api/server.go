@@ -1,30 +1,32 @@
 package api
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
 )
 
-const EnvServerURL = "ADDRESS"
-const EnvStoreInterval = "STORE_INTERVAL"
-const EnvStoreFile = "STORE_FILE"
-const EnvRestore = "RESTORE"
-const DefaultServerURL = "localhost:8080"
-const DefaultStoreInterval = 300
-const DefaultStoreFile = "/tmp/devops-metrics-db.json"
-const DefaultRestore = true
+const (
+	EnvServerURL         = "ADDRESS"
+	EnvStoreInterval     = "STORE_INTERVAL"
+	EnvStoreFile         = "STORE_FILE"
+	EnvRestore           = "RESTORE"
+	DefaultServerURL     = "localhost:8080"
+	DefaultStoreInterval = 300 * time.Second
+	DefaultStoreFile     = "/tmp/devops-metrics-db.json"
+	DefaultRestore       = true
+)
 
 type Handler interface {
 	Handle(w http.ResponseWriter, r *http.Request)
 }
 
-type config struct {
+type Config struct {
 	host          string
 	StoreInterval time.Duration
 	StorePath     string
@@ -32,7 +34,7 @@ type config struct {
 }
 
 type server struct {
-	cfg    config
+	cfg    Config
 	router *chi.Mux
 }
 
@@ -55,8 +57,8 @@ func (s *server) Run() error {
 	return http.ListenAndServe(s.cfg.host, s.router)
 }
 
-func (s *server) GetConfig() config {
-	return config{
+func (s *server) GetConfig() Config {
+	return Config{
 		host:          s.cfg.host,
 		StoreInterval: s.cfg.StoreInterval,
 		StorePath:     s.cfg.StorePath,
@@ -71,12 +73,18 @@ type Server interface {
 
 var _ Server = &server{}
 
-func readConfig() config {
-	return config{
-		host:          getEnvString(EnvServerURL, DefaultServerURL),
-		StoreInterval: time.Duration(getEnvInt(EnvStoreInterval, DefaultStoreInterval)) * time.Second,
-		StorePath:     getEnvString(EnvStoreFile, ""),
-		Restore:       getEnvBool(EnvRestore, DefaultRestore),
+func readConfig() Config {
+	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
+	storeIntervalFlag := flag.Duration("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
+	storePathFlag := flag.String("f", DefaultStoreFile, "строка, имя файла, где хранятся значения")
+	restoreFlag := flag.Bool("r", DefaultRestore, "булево значение (true/false), определяющее, загружать или нет начальные значения")
+	flag.Parse()
+
+	return Config{
+		host:          getEnvString(EnvServerURL, *hostFlag),
+		StoreInterval: getEnvDuration(EnvStoreInterval, *storeIntervalFlag),
+		StorePath:     getEnvString(EnvStoreFile, *storePathFlag),
+		Restore:       getEnvBool(EnvRestore, *restoreFlag),
 	}
 }
 
@@ -89,8 +97,8 @@ func getEnvString(envName, defaultValue string) string {
 	return value
 }
 
-func getEnvInt(envName string, defaultValue int) int {
-	value, err := strconv.Atoi(strings.TrimRight(os.Getenv(envName), "s"))
+func getEnvDuration(envName string, defaultValue time.Duration) time.Duration {
+	value, err := time.ParseDuration(os.Getenv(envName))
 	if err != nil {
 		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue

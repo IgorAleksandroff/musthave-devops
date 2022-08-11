@@ -3,20 +3,33 @@ package devopsserver
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 //go:generate mockery --name "Client"
 
-const EnvServerURL = "ADDRESS"
-const DefaultServerURL = "localhost:8080"
+const (
+	EnvServerURL          = "ADDRESS"
+	EnvPollInterval       = "POLL_INTERVAL"
+	EnvReportInterval     = "REPORT_INTERVAL"
+	DefaultServerURL      = "localhost:8080"
+	DefaultPollInterval   = 2 * time.Second
+	DefaultReportInterval = 10 * time.Second
+)
 
 type (
+	Config struct {
+		host           string
+		PollInterval   time.Duration
+		ReportInterval time.Duration
+	}
 	client struct {
-		host      string
+		cfg       Config
 		transport *http.Client
 	}
 
@@ -24,12 +37,16 @@ type (
 		Do(req *http.Request) (body []byte, err error)
 		DoGet(url string) ([]byte, error)
 		DoPost(url string, data interface{}) ([]byte, error)
+		GetConfig() Config
 	}
 )
 
 func NewClient() Client {
+	cfg := readConfig()
+	log.Printf("Creat Client with config: %+v", cfg)
+
 	return &client{
-		host:      "http://" + getEnvString(EnvServerURL, DefaultServerURL),
+		cfg:       cfg,
 		transport: &http.Client{},
 	}
 }
@@ -50,7 +67,7 @@ func (c client) Do(req *http.Request) (body []byte, err error) {
 }
 
 func (c client) DoGet(path string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, c.host+path, nil)
+	req, err := http.NewRequest(http.MethodGet, c.cfg.host+path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +85,7 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.host+path, bytes.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, c.cfg.host+path, bytes.NewReader(payload))
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +96,42 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 	return body, err
 }
 
+func (c client) GetConfig() Config {
+	return Config{
+		host:           c.cfg.host,
+		PollInterval:   c.cfg.PollInterval,
+		ReportInterval: c.cfg.ReportInterval,
+	}
+}
+
+var _ Client = &client{}
+
+func readConfig() Config {
+	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
+	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
+	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "строка, имя файла, где хранятся значения")
+	flag.Parse()
+
+	return Config{
+		host:           "http://" + getEnvString(EnvServerURL, *hostFlag),
+		PollInterval:   getEnvDuration(EnvPollInterval, *pollIntervalFlag),
+		ReportInterval: getEnvDuration(EnvReportInterval, *reportIntervalFlag),
+	}
+}
+
 func getEnvString(envName, defaultValue string) string {
 	value := os.Getenv(envName)
 	if value == "" {
 		log.Println("empty env")
+		return defaultValue
+	}
+	return value
+}
+
+func getEnvDuration(envName string, defaultValue time.Duration) time.Duration {
+	value, err := time.ParseDuration(os.Getenv(envName))
+	if err != nil {
+		log.Printf("error of env %s: %s", envName, err.Error())
 		return defaultValue
 	}
 	return value

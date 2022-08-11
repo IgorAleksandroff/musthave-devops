@@ -12,7 +12,7 @@ func main() {
 	config := clientconfig.Read()
 
 	client := devopsserver.NewClient(config.Host)
-	runtimeMetricsRepo := runtimemetrics.NewRepository()
+	runtimeMetricsRepo := runtimemetrics.NewRepository(config.HashKey)
 	runtimeMetricsUC := runtimemetrics.NewUsecase(runtimeMetricsRepo, client)
 
 	pollTicker := time.NewTicker(config.PollInterval)

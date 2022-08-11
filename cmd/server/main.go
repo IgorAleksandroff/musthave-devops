@@ -3,34 +3,26 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 
+	"github.com/IgorAleksandroff/musthave-devops/configuration/serverconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repository"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/usecase"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 )
 
 func main() {
 	ctx, closeCtx := context.WithCancel(context.Background())
 	defer closeCtx()
 
-	server := api.New()
-	config := server.GetConfig()
+	config := serverconfig.Read()
 
-	metricsRepo := repository.New(ctx, repository.Config{
+	metricsRepo := metricscollection.NewRepository(ctx, metricscollection.Config{
 		StorePath:     config.StorePath,
 		StoreInterval: config.StoreInterval,
 		Restore:       config.Restore,
 	})
-	metricsUC := usecase.New(metricsRepo)
-	metricHandler := metrichandler.New(metricsUC)
+	metricsUC := metricscollection.NewUsecase(metricsRepo)
 
-	server.AddHandler(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
-	server.AddHandler(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
-	server.AddHandler(http.MethodGet, "/", metricHandler.HandleMetricsGet)
-	server.AddHandler(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
-	server.AddHandler(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
+	server := api.New(config.Host, metricsUC)
 
 	metricsRepo.MemSync()
 

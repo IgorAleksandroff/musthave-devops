@@ -1,4 +1,4 @@
-package usecase
+package runtimemetrics_test
 
 import (
 	"errors"
@@ -7,7 +7,6 @@ import (
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	mocks2 "github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver/mocks"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/entity"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/mocks"
 	"github.com/stretchr/testify/mock"
 )
@@ -25,17 +24,17 @@ func Test_usecase_SendMetrics(t *testing.T) {
 			name: "success",
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return()
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(0)).Return()
 				repoMock.On("GetMetricsName").Return([]string{
 					"name01",
 					"name02",
 				})
-				metric01 := entity.Metrics{
+				metric01 := runtimemetrics.Metrics{
 					ID:    "name01",
 					MType: "gauge",
 					Value: func() *float64 { v := 0.1; return &v }(),
 				}
-				metric02 := entity.Metrics{
+				metric02 := runtimemetrics.Metrics{
 					ID:    "name02",
 					MType: "counter",
 					Delta: func() *int64 { v := int64(02); return &v }(),
@@ -58,11 +57,11 @@ func Test_usecase_SendMetrics(t *testing.T) {
 			name: "error_get_metric",
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return()
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(0)).Return()
 				repoMock.On("GetMetricsName").Return([]string{
 					"name01",
 				})
-				repoMock.On("GetMetric", "name01").Return(entity.Metrics{}, errors.New("err"))
+				repoMock.On("GetMetric", "name01").Return(runtimemetrics.Metrics{}, errors.New("err"))
 
 				clientMock := &mocks2.Client{}
 
@@ -76,17 +75,17 @@ func Test_usecase_SendMetrics(t *testing.T) {
 			name: "error_post",
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return()
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(0)).Return()
 				repoMock.On("GetMetricsName").Return([]string{
 					"name01",
 					"name02",
 				})
-				metric01 := entity.Metrics{
+				metric01 := runtimemetrics.Metrics{
 					ID:    "name01",
 					MType: "gauge",
 					Value: func() *float64 { v := 0.1; return &v }(),
 				}
-				metric02 := entity.Metrics{
+				metric02 := runtimemetrics.Metrics{
 					ID:    "name02",
 					MType: "counter",
 					Delta: func() *int64 { v := int64(02); return &v }(),
@@ -108,7 +107,7 @@ func Test_usecase_SendMetrics(t *testing.T) {
 	for _, tt := range tests {
 		f := tt.fields()
 		t.Run(tt.name, func(t *testing.T) {
-			u := New(
+			u := runtimemetrics.NewUsecase(
 				f.repository,
 				f.devopsServerClient,
 			)
@@ -130,11 +129,11 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 			name: "success",
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return().Once()
-				repoMock.On("GetMetric", "PollCount").Return(entity.Metrics{
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(0)).Return().Once()
+				repoMock.On("GetMetric", "PollCount").Return(runtimemetrics.Metrics{
 					Delta: func() *int64 { v := int64(99); return &v }(),
 				}, nil)
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(100)).Return().Once()
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(100)).Return().Once()
 				repoMock.On("SaveMetric", mock.MatchedBy(func(name string) bool {
 					return name != "PollCount"
 				}), mock.Anything).Return()
@@ -148,9 +147,9 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 			name: "error_get_poll_count",
 			fields: func() fields {
 				repoMock := &mocks.Repository{}
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(0)).Return().Once()
-				repoMock.On("GetMetric", "PollCount").Return(entity.Metrics{}, errors.New("err"))
-				repoMock.On("SaveMetric", "PollCount", entity.Counter(1)).Return().Once()
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(0)).Return().Once()
+				repoMock.On("GetMetric", "PollCount").Return(runtimemetrics.Metrics{}, errors.New("err"))
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics.Counter(1)).Return().Once()
 				repoMock.On("SaveMetric", mock.MatchedBy(func(name string) bool {
 					return name != "PollCount"
 				}), mock.Anything).Return()
@@ -167,7 +166,7 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 	for _, tt := range tests {
 		f := tt.fields()
 		t.Run(tt.name, func(t *testing.T) {
-			u := New(
+			u := runtimemetrics.NewUsecase(
 				f.repository,
 				clientMock,
 			)

@@ -1,4 +1,4 @@
-package entity
+package runtimemetrics
 
 type Gauge float64
 type Counter int64

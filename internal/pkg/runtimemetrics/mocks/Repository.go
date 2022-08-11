@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	entity "github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics/entity"
+	runtimemetrics "github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -13,14 +13,14 @@ type Repository struct {
 }
 
 // GetMetric provides a mock function with given fields: name
-func (_m *Repository) GetMetric(name string) (entity.Metrics, error) {
+func (_m *Repository) GetMetric(name string) (runtimemetrics.Metrics, error) {
 	ret := _m.Called(name)
 
-	var r0 entity.Metrics
-	if rf, ok := ret.Get(0).(func(string) entity.Metrics); ok {
+	var r0 runtimemetrics.Metrics
+	if rf, ok := ret.Get(0).(func(string) runtimemetrics.Metrics); ok {
 		r0 = rf(name)
 	} else {
-		r0 = ret.Get(0).(entity.Metrics)
+		r0 = ret.Get(0).(runtimemetrics.Metrics)
 	}
 
 	var r1 error
@@ -50,7 +50,7 @@ func (_m *Repository) GetMetricsName() []string {
 }
 
 // SaveMetric provides a mock function with given fields: name, value
-func (_m *Repository) SaveMetric(name string, value entity.Getter) {
+func (_m *Repository) SaveMetric(name string, value runtimemetrics.Getter) {
 	_m.Called(name, value)
 }
 

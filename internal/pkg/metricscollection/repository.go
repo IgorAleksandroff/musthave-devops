@@ -5,10 +5,9 @@ import "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollecti
 //go:generate mockery --name Repository
 
 type Repository interface {
-	SaveGaugeMetric(name string, value float64)
-	SaveCounterMetric(name string, value int64)
-	GetGaugeMetric(name string) (float64, error)
-	GetCounterMetric(name string) (int64, error)
-	GetGaugeMetrics() map[string]entity.MetricGauge
-	GetCounterMetrics() map[string]entity.MetricCounter
+	SaveMetric(value entity.Metrics)
+	GetMetric(name string) (*entity.Metrics, error)
+	GetMetrics() map[string]entity.Metrics
+	FlushMemo() error
+	MemSync()
 }

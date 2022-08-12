@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/IgorAleksandroff/musthave-devops/configuration/serverconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/utils/serverconfig"
 )
 
 func main() {

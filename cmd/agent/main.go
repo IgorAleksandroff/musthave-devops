@@ -3,9 +3,9 @@ package main
 import (
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/configuration/clientconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
+	"github.com/IgorAleksandroff/musthave-devops/utils/clientconfig"
 )
 
 func main() {

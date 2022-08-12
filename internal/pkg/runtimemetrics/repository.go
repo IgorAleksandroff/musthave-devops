@@ -1,11 +1,9 @@
 package runtimemetrics
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"fmt"
 
-	"github.com/IgorAleksandroff/musthave-devops/configuration/clientconfig"
+	"github.com/IgorAleksandroff/musthave-devops/utils"
 )
 
 //go:generate mockery --name Repository
@@ -33,7 +31,7 @@ func (r *rep) SaveMetric(name string, value Getter) {
 			ID:    name,
 			MType: value.GetType(),
 			Delta: &valueInt64,
-			Hash:  getHash(fmt.Sprintf("%s:counter:%d", name, valueInt64), r.hashKey),
+			Hash:  utils.GetHash(fmt.Sprintf("%s:counter:%d", name, valueInt64), r.hashKey),
 		}
 	case Gauge:
 		valueFloat64 := float64(value)
@@ -41,7 +39,7 @@ func (r *rep) SaveMetric(name string, value Getter) {
 			ID:    name,
 			MType: value.GetType(),
 			Value: &valueFloat64,
-			Hash:  getHash(fmt.Sprintf("%s:gauge:%f", name, valueFloat64), r.hashKey),
+			Hash:  utils.GetHash(fmt.Sprintf("%s:gauge:%f", name, valueFloat64), r.hashKey),
 		}
 	}
 }
@@ -62,17 +60,4 @@ func (r *rep) GetMetricsName() []string {
 	}
 
 	return metricsName
-}
-
-func getHash(value, key string) string {
-	if key == clientconfig.DefaultEnvHashKey {
-		return ""
-	}
-	// подписываем алгоритмом HMAC, используя SHA256
-	h := hmac.New(sha256.New, []byte(key))
-	h.Write([]byte(value))
-	dst := h.Sum(nil)
-
-	fmt.Printf("%x", dst)
-	return fmt.Sprintf("%x", dst)
 }

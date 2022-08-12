@@ -5,14 +5,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/configuration"
+	"github.com/IgorAleksandroff/musthave-devops/utils"
 )
 
 const (
-	EnvServerURL          = "ADDRESS"
-	EnvPollInterval       = "POLL_INTERVAL"
-	EnvReportInterval     = "REPORT_INTERVAL"
-	EnvHashKey            = "KEY"
+	EnvServerURL      = "ADDRESS"
+	EnvPollInterval   = "POLL_INTERVAL"
+	EnvReportInterval = "REPORT_INTERVAL"
+	EnvHashKey        = "KEY"
+
 	DefaultServerURL      = "localhost:8080"
 	DefaultPollInterval   = 2 * time.Second
 	DefaultReportInterval = 10 * time.Second
@@ -30,14 +31,14 @@ func Read() config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "частота обновления метрик в секундах")
 	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "частота отправки метрик в секундах")
-	hashKey := flag.String("k", DefaultEnvHashKey, "адрес и порт сервера")
+	hashKey := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
 	flag.Parse()
 
 	cfg := config{
-		Host:           "http://" + configuration.GetEnvString(EnvServerURL, *hostFlag),
-		PollInterval:   configuration.GetEnvDuration(EnvPollInterval, *pollIntervalFlag),
-		ReportInterval: configuration.GetEnvDuration(EnvReportInterval, *reportIntervalFlag),
-		HashKey:        configuration.GetEnvString(EnvHashKey, *hashKey),
+		Host:           "http://" + utils.GetEnvString(EnvServerURL, *hostFlag),
+		PollInterval:   utils.GetEnvDuration(EnvPollInterval, *pollIntervalFlag),
+		ReportInterval: utils.GetEnvDuration(EnvReportInterval, *reportIntervalFlag),
+		HashKey:        utils.GetEnvString(EnvHashKey, *hashKey),
 	}
 	log.Printf("Parsed Client config: %+v", cfg)
 

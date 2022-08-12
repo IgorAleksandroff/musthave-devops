@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/utils"
 	"github.com/go-chi/chi"
 )
 
@@ -149,17 +150,18 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	reader := json.NewDecoder(r.Body)
 	reader.Decode(&metric)
 
-	switch metric.MType {
-	case metricscollection.CounterTypeMetric:
-	case metricscollection.GaugeTypeMetric:
-	default:
-		http.Error(w, "unknown handler", http.StatusNotImplemented)
-		return
-	}
-
 	m, errMetric := h.metricsUC.GetMetric(metric.ID)
 	if errMetric != nil || metric.MType != m.MType {
 		http.Error(w, errMetric.Error(), http.StatusNotFound)
+		return
+	}
+	switch metric.MType {
+	case metricscollection.CounterTypeMetric:
+		m.Hash = utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, m.Delta), h.hashKey)
+	case metricscollection.GaugeTypeMetric:
+		utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, m.Value), h.hashKey)
+	default:
+		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return
 	}
 

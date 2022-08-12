@@ -56,7 +56,7 @@ func gzipHandle(next http.Handler) http.Handler {
 func gzipUnzip(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// проверяем, что клиент поддерживает gzip-сжатие
-		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+		if r.Header.Get(`Content-Encoding`) != `gzip` {
 			// если не сжато методом gzip, передаём управление
 			// дальше без изменений
 			next.ServeHTTP(w, r)

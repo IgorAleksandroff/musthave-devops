@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/utils"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment"
 )
 
 const (
@@ -35,10 +35,10 @@ func Read() config {
 	flag.Parse()
 
 	cfg := config{
-		Host:           "http://" + utils.GetEnvString(EnvServerURL, *hostFlag),
-		PollInterval:   utils.GetEnvDuration(EnvPollInterval, *pollIntervalFlag),
-		ReportInterval: utils.GetEnvDuration(EnvReportInterval, *reportIntervalFlag),
-		HashKey:        utils.GetEnvString(EnvHashKey, *hashKey),
+		Host:           "http://" + enviroment.GetEnvString(EnvServerURL, *hostFlag),
+		PollInterval:   enviroment.GetEnvDuration(EnvPollInterval, *pollIntervalFlag),
+		ReportInterval: enviroment.GetEnvDuration(EnvReportInterval, *reportIntervalFlag),
+		HashKey:        enviroment.GetEnvString(EnvHashKey, *hashKey),
 	}
 	log.Printf("Parsed Client config: %+v", cfg)
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/utils"
-	"github.com/IgorAleksandroff/musthave-devops/utils/serverconfig"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
 	"github.com/go-chi/chi"
 )
 

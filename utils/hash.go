@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/IgorAleksandroff/musthave-devops/utils/clientconfig"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/clientconfig"
 )
 
 func GetHash(value, key string) string {

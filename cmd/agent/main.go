@@ -5,7 +5,7 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
-	"github.com/IgorAleksandroff/musthave-devops/utils/clientconfig"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/clientconfig"
 )
 
 func main() {

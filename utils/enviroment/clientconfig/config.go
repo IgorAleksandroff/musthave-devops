@@ -3,6 +3,7 @@ package clientconfig
 import (
 	"flag"
 	"log"
+	"os"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment"
@@ -28,6 +29,7 @@ type config struct {
 }
 
 func Read() config {
+	log.Println("os:", os.Args)
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "частота обновления метрик в секундах")
 	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "частота отправки метрик в секундах")

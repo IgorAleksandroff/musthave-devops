@@ -19,7 +19,7 @@ func GetEnvString(envName, defaultValue string) string {
 func GetEnvDuration(envName string, defaultValue time.Duration) time.Duration {
 	value, err := time.ParseDuration(os.Getenv(envName))
 	if err != nil {
-		log.Printf("error of env %s: %s, default: %s", envName, err.Error(), defaultValue)
+		log.Printf("error of env %s: %s, default: %v", envName, err.Error(), defaultValue)
 		return defaultValue
 	}
 	return value
@@ -28,7 +28,7 @@ func GetEnvDuration(envName string, defaultValue time.Duration) time.Duration {
 func GetEnvBool(envName string, defaultValue bool) bool {
 	value, err := strconv.ParseBool(os.Getenv(envName))
 	if err != nil {
-		log.Printf("error of env %s: %s, default: %s", envName, err.Error(), defaultValue)
+		log.Printf("error of env %s: %s, default: %v", envName, err.Error(), defaultValue)
 		return defaultValue
 	}
 	return value

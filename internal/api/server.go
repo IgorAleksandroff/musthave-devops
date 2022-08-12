@@ -53,10 +53,37 @@ func gzipHandle(next http.Handler) http.Handler {
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
 	})
 }
+func gzipUnzip(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// проверяем, что клиент поддерживает gzip-сжатие
+		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+			// если не сжато методом gzip, передаём управление
+			// дальше без изменений
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// создаём *gzip.Reader, который будет читать тело запроса
+		// и распаковывать его
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// не забывайте потом закрыть *gzip.Reader
+		defer gz.Close()
+
+		// меняем Body на тип gzip.Reader для распаковки данных
+		r.Body = gz
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func New(host, key string, metricsUC metricscollection.Usecase) *server {
 	r := chi.NewRouter()
 
+	r.Use(gzipUnzip)
 	r.Use(gzipHandle)
 
 	metricHandler := metrichandler.New(metricsUC, key)

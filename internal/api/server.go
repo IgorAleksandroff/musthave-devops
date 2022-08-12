@@ -25,6 +25,32 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
+func New(host, key string, metricsUC metricscollection.Usecase) *server {
+	r := chi.NewRouter()
+
+	r.Use(gzipUnzip)
+	r.Use(gzipHandle)
+
+	metricHandler := metrichandler.New(metricsUC, key)
+
+	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
+	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
+	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
+	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
+	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
+
+	return &server{
+		router: r,
+		host:   host,
+	}
+}
+
+func (s *server) Run() error {
+	return http.ListenAndServe(s.host, s.router)
+}
+
+var _ Server = &server{}
+
 func (w gzipWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
 	return w.Writer.Write(b)
@@ -79,29 +105,3 @@ func gzipUnzip(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-func New(host, key string, metricsUC metricscollection.Usecase) *server {
-	r := chi.NewRouter()
-
-	r.Use(gzipUnzip)
-	r.Use(gzipHandle)
-
-	metricHandler := metrichandler.New(metricsUC, key)
-
-	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
-	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
-	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
-	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
-	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
-
-	return &server{
-		router: r,
-		host:   host,
-	}
-}
-
-func (s *server) Run() error {
-	return http.ListenAndServe(s.host, s.router)
-}
-
-var _ Server = &server{}

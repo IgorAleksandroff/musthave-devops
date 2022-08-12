@@ -31,15 +31,14 @@ func Read() config {
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "частота обновления метрик в секундах")
 	reportIntervalFlag := flag.Duration("r", DefaultReportInterval, "частота отправки метрик в секундах")
-	//hashKey := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
+	hashKey := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
 	flag.Parse()
 
 	cfg := config{
 		Host:           "http://" + enviroment.GetEnvString(EnvServerURL, *hostFlag),
 		PollInterval:   enviroment.GetEnvDuration(EnvPollInterval, *pollIntervalFlag),
 		ReportInterval: enviroment.GetEnvDuration(EnvReportInterval, *reportIntervalFlag),
-		HashKey:        "048ff4ea240a9fdeac8f1422733e9f3b8b0291c969652225e25c5f0f9f8da654139c9e21",
-		//enviroment.GetEnvString(EnvHashKey, *hashKey),
+		HashKey:        enviroment.GetEnvString(EnvHashKey, *hashKey),
 	}
 	log.Printf("Parsed Client config: %+v", cfg)
 

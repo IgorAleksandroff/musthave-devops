@@ -17,6 +17,5 @@ func GetHash(value, key string) string {
 	h.Write([]byte(value))
 	dst := h.Sum(nil)
 
-	fmt.Printf("%x", dst)
 	return fmt.Sprintf("%x", dst)
 }

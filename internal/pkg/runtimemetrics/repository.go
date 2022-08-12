@@ -42,6 +42,7 @@ func (r *rep) SaveMetric(name string, value Getter) {
 			Hash:  utils.GetHash(fmt.Sprintf("%s:gauge:%f", name, valueFloat64), r.hashKey),
 		}
 	}
+	//log.Println(r.storage[name])
 }
 
 func (r *rep) GetMetric(name string) (m Metrics, err error) {

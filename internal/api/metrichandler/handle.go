@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -117,9 +118,10 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
 			return
 		}
-		hash := utils.GetHash(fmt.Sprintf("%s:counter:%d", metric.ID, metric.Delta), h.hashKey)
+		hash := utils.GetHash(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta), h.hashKey)
 		if h.hashKey != serverconfig.DefaultEnvHashKey && hash != metric.Hash {
-			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
+			log.Println("hash isn't valid:", hash, metric)
+			http.Error(w, "hash isn't valid", http.StatusBadRequest)
 			return
 		}
 
@@ -129,9 +131,10 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "empty value for type gauge. internal error", http.StatusBadRequest)
 			return
 		}
-		hash := utils.GetHash(fmt.Sprintf("%s:gauge:%d", metric.ID, metric.Value), h.hashKey)
+		hash := utils.GetHash(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value), h.hashKey)
 		if h.hashKey != serverconfig.DefaultEnvHashKey && hash != metric.Hash {
-			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
+			log.Println("hash isn't valid:", hash, metric)
+			http.Error(w, "hash isn't valid", http.StatusBadRequest)
 			return
 		}
 

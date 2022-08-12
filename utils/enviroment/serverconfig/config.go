@@ -35,7 +35,7 @@ func Read() config {
 	storeIntervalFlag := flag.Duration("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
 	storePathFlag := flag.String("f", DefaultStoreFile, "строка, имя файла, где хранятся значения")
 	restoreFlag := flag.Bool("r", DefaultRestore, "булево значение (true/false), определяющее, загружать или нет начальные значения")
-	//hashKey := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
+	hashKey := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
 	flag.Parse()
 
 	cfg := config{
@@ -43,8 +43,7 @@ func Read() config {
 		StoreInterval: enviroment.GetEnvDuration(EnvStoreInterval, *storeIntervalFlag),
 		StorePath:     enviroment.GetEnvString(EnvStoreFile, *storePathFlag),
 		Restore:       enviroment.GetEnvBool(EnvRestore, *restoreFlag),
-		HashKey:       "048ff4ea240a9fdeac8f1422733e9f3b8b0291c969652225e25c5f0f9f8da654139c9e21",
-		//enviroment.GetEnvString(EnvHashKey, *hashKey),
+		HashKey:       enviroment.GetEnvString(EnvHashKey, *hashKey),
 	}
 
 	log.Printf("Parsed Server config: %+v", cfg)

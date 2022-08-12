@@ -172,9 +172,9 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	}
 	switch metric.MType {
 	case metricscollection.CounterTypeMetric:
-		m.Hash = utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, m.Delta), h.hashKey)
+		m.Hash = utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta), h.hashKey)
 	case metricscollection.GaugeTypeMetric:
-		m.Hash = utils.GetHash(fmt.Sprintf("%s:gauge:%d", m.ID, m.Value), h.hashKey)
+		m.Hash = utils.GetHash(fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value), h.hashKey)
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return

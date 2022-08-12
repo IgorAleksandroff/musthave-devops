@@ -22,7 +22,7 @@ func main() {
 	})
 	metricsUC := metricscollection.NewUsecase(metricsRepo)
 
-	server := api.New(config.Host, metricsUC)
+	server := api.New(config.Host, config.HashKey, metricsUC)
 
 	metricsRepo.MemSync()
 

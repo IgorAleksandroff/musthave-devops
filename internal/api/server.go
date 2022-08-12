@@ -54,12 +54,12 @@ func gzipHandle(next http.Handler) http.Handler {
 	})
 }
 
-func New(host string, metricsUC metricscollection.Usecase) *server {
+func New(host, key string, metricsUC metricscollection.Usecase) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipHandle)
 
-	metricHandler := metrichandler.New(metricsUC)
+	metricHandler := metrichandler.New(metricsUC, key)
 
 	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
 	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)

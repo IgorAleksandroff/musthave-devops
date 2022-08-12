@@ -11,6 +11,7 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/utils"
+	"github.com/IgorAleksandroff/musthave-devops/utils/serverconfig"
 	"github.com/go-chi/chi"
 )
 
@@ -111,7 +112,13 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 
 	switch metric.MType {
 	case metricscollection.CounterTypeMetric:
+
 		if metric.Delta == nil {
+			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
+			return
+		}
+		hash := utils.GetHash(fmt.Sprintf("%s:counter:%d", metric.ID, metric.Delta), h.hashKey)
+		if h.hashKey != serverconfig.DefaultEnvHashKey && hash != metric.Hash {
 			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
 			return
 		}
@@ -120,6 +127,11 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 	case metricscollection.GaugeTypeMetric:
 		if metric.Value == nil {
 			http.Error(w, "empty value for type gauge. internal error", http.StatusBadRequest)
+			return
+		}
+		hash := utils.GetHash(fmt.Sprintf("%s:gauge:%d", metric.ID, metric.Value), h.hashKey)
+		if h.hashKey != serverconfig.DefaultEnvHashKey && hash != metric.Hash {
+			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
 			return
 		}
 
@@ -159,7 +171,7 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	case metricscollection.CounterTypeMetric:
 		m.Hash = utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, m.Delta), h.hashKey)
 	case metricscollection.GaugeTypeMetric:
-		utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, m.Value), h.hashKey)
+		m.Hash = utils.GetHash(fmt.Sprintf("%s:gauge:%d", m.ID, m.Value), h.hashKey)
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return

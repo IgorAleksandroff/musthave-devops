@@ -38,6 +38,7 @@ func New(host, key string, metricsUC metricscollection.Usecase) *server {
 	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
 	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
 	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
+	r.MethodFunc(http.MethodGet, "/ping/", metricHandler.HandleDBPing)
 
 	return &server{
 		router: r,
@@ -79,6 +80,7 @@ func gzipHandle(next http.Handler) http.Handler {
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
 	})
 }
+
 func gzipUnzip(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// проверяем, что клиент поддерживает gzip-сжатие

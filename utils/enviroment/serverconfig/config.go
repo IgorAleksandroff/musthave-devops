@@ -15,12 +15,14 @@ const (
 	EnvStoreFile     = "STORE_FILE"
 	EnvRestore       = "RESTORE"
 	EnvHashKey       = "KEY"
+	EnvDB            = "DATABASE_DSN"
 
 	DefaultServerURL     = "localhost:8080"
 	DefaultStoreInterval = 300 * time.Second
 	DefaultStoreFile     = "/tmp/devops-metrics-db.json"
 	DefaultRestore       = true
 	DefaultEnvHashKey    = ""
+	DefaultEnvDB         = ""
 )
 
 type config struct {
@@ -29,6 +31,7 @@ type config struct {
 	StorePath     string
 	Restore       bool
 	HashKey       string
+	AddressDB     string
 }
 
 func Read() config {
@@ -37,15 +40,23 @@ func Read() config {
 	storeIntervalFlag := flag.Duration("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
 	storePathFlag := flag.String("f", DefaultStoreFile, "строка, имя файла, где хранятся значения")
 	restoreFlag := flag.Bool("r", DefaultRestore, "булево значение (true/false), определяющее, загружать или нет начальные значения")
-	hashKey := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
+	hashKeyFlag := flag.String("k", DefaultEnvHashKey, "ключ подписи метрик")
+	addressDBflag := flag.String("d", DefaultEnvDB, "адрес подключения к БД")
 	flag.Parse()
+
+	storePathEnv := enviroment.GetEnvString(EnvStoreFile, *storePathFlag)
+	addressDBenv := enviroment.GetEnvString(EnvStoreFile, *addressDBflag)
+	if addressDBenv != DefaultEnvDB {
+		storePathEnv = ""
+	}
 
 	cfg := config{
 		Host:          enviroment.GetEnvString(EnvServerURL, *hostFlag),
 		StoreInterval: enviroment.GetEnvDuration(EnvStoreInterval, *storeIntervalFlag),
-		StorePath:     enviroment.GetEnvString(EnvStoreFile, *storePathFlag),
+		StorePath:     storePathEnv,
 		Restore:       enviroment.GetEnvBool(EnvRestore, *restoreFlag),
-		HashKey:       enviroment.GetEnvString(EnvHashKey, *hashKey),
+		HashKey:       enviroment.GetEnvString(EnvHashKey, *hashKeyFlag),
+		AddressDB:     addressDBenv,
 	}
 
 	log.Printf("Parsed Server config: %+v", cfg)

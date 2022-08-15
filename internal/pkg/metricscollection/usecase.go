@@ -12,6 +12,7 @@ type Usecase interface {
 	SaveCounterMetric(value Metrics)
 	GetMetric(name string) (*Metrics, error)
 	GetMetricsValue() map[string]string
+	PingUC() error
 }
 
 type usecase struct {
@@ -63,4 +64,8 @@ func (u usecase) GetMetricsValue() map[string]string {
 	}
 
 	return result
+}
+
+func (u usecase) PingUC() error {
+	return u.repository.PingDB()
 }

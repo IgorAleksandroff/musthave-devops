@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v4"
 )
 
 //go:generate mockery --name Repository
@@ -15,10 +17,12 @@ type Repository interface {
 	SaveMetric(value Metrics)
 	GetMetric(name string) (*Metrics, error)
 	GetMetrics() map[string]Metrics
+	PingDB() error
 }
 
 type Config struct {
 	StorePath     string
+	AddressDB     string
 	StoreInterval time.Duration
 	Restore       bool
 }
@@ -26,10 +30,11 @@ type Config struct {
 type rep struct {
 	ctx      context.Context
 	metricDB map[string]Metrics
+	db       *pgx.Conn
 	cfg      Config
 }
 
-func NewRepository(ctx context.Context, cfg Config) *rep {
+func NewRepository(ctx context.Context, cfg Config, db *pgx.Conn) *rep {
 	metricDB := make(map[string]Metrics)
 	var err error
 
@@ -39,7 +44,7 @@ func NewRepository(ctx context.Context, cfg Config) *rep {
 		}
 	}
 
-	return &rep{ctx: ctx, metricDB: metricDB, cfg: cfg}
+	return &rep{ctx: ctx, metricDB: metricDB, cfg: cfg, db: db}
 }
 
 func (r *rep) SaveMetric(value Metrics) {
@@ -107,4 +112,8 @@ func (r *rep) flushMemo() error {
 	}
 
 	return nil
+}
+
+func (r *rep) PingDB() error {
+	return r.db.Ping(r.ctx)
 }

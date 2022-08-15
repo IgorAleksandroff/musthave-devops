@@ -45,16 +45,18 @@ func Read() config {
 	flag.Parse()
 
 	storePathEnv := enviroment.GetEnvString(EnvStoreFile, *storePathFlag)
+	restoreEnv := enviroment.GetEnvBool(EnvRestore, *restoreFlag)
 	addressDBenv := enviroment.GetEnvString(EnvDB, *addressDBflag)
-	if addressDBenv != DefaultEnvDB {
-		storePathEnv = ""
-	}
+	//if addressDBenv != DefaultEnvDB {
+	//	storePathEnv = ""
+	//	restoreEnv = false
+	//}
 
 	cfg := config{
 		Host:          enviroment.GetEnvString(EnvServerURL, *hostFlag),
 		StoreInterval: enviroment.GetEnvDuration(EnvStoreInterval, *storeIntervalFlag),
 		StorePath:     storePathEnv,
-		Restore:       enviroment.GetEnvBool(EnvRestore, *restoreFlag),
+		Restore:       restoreEnv,
 		HashKey:       enviroment.GetEnvString(EnvHashKey, *hashKeyFlag),
 		AddressDB:     addressDBenv,
 	}

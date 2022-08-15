@@ -8,6 +8,7 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorypg"
 	"github.com/go-chi/chi"
 )
 
@@ -25,13 +26,13 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func New(host, key string, metricsUC metricscollection.Usecase) *server {
+func New(host, key string, metricsUC metricscollection.Usecase, pingDB repositorypg.Pinger) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)
 	r.Use(gzipHandle)
 
-	metricHandler := metrichandler.New(metricsUC, key)
+	metricHandler := metrichandler.New(metricsUC, key, pingDB)
 
 	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
 	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)

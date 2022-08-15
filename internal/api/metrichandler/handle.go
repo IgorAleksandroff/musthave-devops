@@ -196,7 +196,7 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) HandleDBPing(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleDBPing")
-	if err := h.metricsUC.PingUC(); err != nil {
+	if err := h.pingDB.Ping(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

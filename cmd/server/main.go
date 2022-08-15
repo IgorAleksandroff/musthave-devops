@@ -18,12 +18,16 @@ func main() {
 
 	config := serverconfig.Read()
 
-	conn, err := pgx.Connect(ctx, config.AddressDB)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
-		os.Exit(1)
+	var conn *pgx.Conn
+	var err error
+	if config.AddressDB != "" {
+		conn, err = pgx.Connect(ctx, config.AddressDB)
+		if err != nil {
+			log.Fatalf("Unable to connect to database: %v", err)
+			os.Exit(1)
+		}
+		defer conn.Close(ctx)
 	}
-	defer conn.Close(ctx)
 
 	metricsRepo := metricscollection.NewRepository(ctx, metricscollection.Config{
 		StorePath:     config.StorePath,

@@ -3,6 +3,7 @@ package metricscollection
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -115,5 +116,8 @@ func (r *rep) flushMemo() error {
 }
 
 func (r *rep) PingDB() error {
+	if r.cfg.AddressDB == "" {
+		return errors.New("DB isn't configured")
+	}
 	return r.db.Ping(r.ctx)
 }

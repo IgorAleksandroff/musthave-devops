@@ -45,7 +45,7 @@ func Read() config {
 	flag.Parse()
 
 	storePathEnv := enviroment.GetEnvString(EnvStoreFile, *storePathFlag)
-	addressDBenv := enviroment.GetEnvString(EnvStoreFile, *addressDBflag)
+	addressDBenv := enviroment.GetEnvString(EnvDB, *addressDBflag)
 	if addressDBenv != DefaultEnvDB {
 		storePathEnv = ""
 	}

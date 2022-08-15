@@ -9,7 +9,7 @@ import (
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 func main() {
@@ -18,16 +18,16 @@ func main() {
 
 	config := serverconfig.Read()
 
-	var conn *pgx.Conn
+	var conn *pgxpool.Pool
 	var err error
 	if config.AddressDB != "" {
-		conn, err = pgx.Connect(ctx, config.AddressDB)
+		conn, err = pgxpool.Connect(ctx, config.AddressDB)
 		if err != nil {
 			log.Fatalf("Unable to connect to database: %v", err)
 			os.Exit(1)
 		}
 		log.Printf("connect to DB: %v", conn.Config())
-		defer conn.Close(ctx)
+		defer conn.Close()
 	}
 
 	metricsRepo := metricscollection.NewRepository(ctx, metricscollection.Config{

@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 //go:generate mockery --name Repository
@@ -31,11 +31,11 @@ type Config struct {
 type rep struct {
 	ctx      context.Context
 	metricDB map[string]Metrics
-	db       *pgx.Conn
+	db       *pgxpool.Pool
 	cfg      Config
 }
 
-func NewRepository(ctx context.Context, cfg Config, db *pgx.Conn) *rep {
+func NewRepository(ctx context.Context, cfg Config, db *pgxpool.Pool) *rep {
 	metricDB := make(map[string]Metrics)
 	var err error
 

@@ -20,29 +20,38 @@ func main() {
 
 	config := serverconfig.Read()
 
+	repositoryMemo := repositorymemo.NewRepository(ctx, repositorymemo.Config{
+		StorePath:     config.StorePath,
+		StoreInterval: config.StoreInterval,
+		Restore:       config.Restore,
+	})
+	metricsUC := metricscollection.NewUsecase(repositoryMemo)
+
 	var conn *pgxpool.Pool
 	var err error
 	if config.AddressDB != "" {
 		conn, err = pgxpool.Connect(ctx, config.AddressDB)
 		if err != nil {
-			log.Fatalf("Unable to connect to database: %v", err)
+			log.Fatalf("Unable to connect to database: %v\n", err)
 			os.Exit(1)
 		}
 		log.Printf("connect to DB: %v", conn.Config())
 		defer conn.Close()
+
+		repositoryPG := repositorypg.NewRepository(ctx, conn)
+		if err = repositoryPG.Init(); err != nil {
+			log.Fatalf("Init DB Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		metricsUC = metricscollection.NewUsecase(repositoryPG)
+	} else {
+		repositoryMemo.MemSync()
 	}
 
-	metricsRepo := repositorymemo.NewRepository(ctx, repositorymemo.Config{
-		StorePath:     config.StorePath,
-		StoreInterval: config.StoreInterval,
-		Restore:       config.Restore,
-	})
 	connectionTester := repositorypg.NewPinger(ctx, conn)
-	metricsUC := metricscollection.NewUsecase(metricsRepo)
 
 	server := api.New(config.Host, config.HashKey, metricsUC, connectionTester)
-
-	metricsRepo.MemSync()
 
 	log.Fatal(server.Run())
 }

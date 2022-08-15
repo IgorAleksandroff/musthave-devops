@@ -8,6 +8,8 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorymemo"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorypg"
 	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -30,17 +32,15 @@ func main() {
 		defer conn.Close()
 	}
 
-	metricsRepo := metricscollection.NewRepository(ctx, metricscollection.Config{
+	metricsRepo := repositorymemo.NewRepository(ctx, repositorymemo.Config{
 		StorePath:     config.StorePath,
 		StoreInterval: config.StoreInterval,
 		Restore:       config.Restore,
-		AddressDB:     config.AddressDB,
-	},
-		conn,
-	)
+	})
+	connectionTester := repositorypg.NewPinger(ctx, conn)
 	metricsUC := metricscollection.NewUsecase(metricsRepo)
 
-	server := api.New(config.Host, config.HashKey, metricsUC)
+	server := api.New(config.Host, config.HashKey, metricsUC, connectionTester)
 
 	metricsRepo.MemSync()
 

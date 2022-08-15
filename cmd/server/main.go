@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	ctx, closeCtx := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, closeCtx := context.WithTimeout(context.Background(), 5*time.Second)
 	defer closeCtx()
 
 	config := serverconfig.Read()
@@ -26,6 +26,7 @@ func main() {
 			log.Fatalf("Unable to connect to database: %v", err)
 			os.Exit(1)
 		}
+		log.Printf("connect to DB: %v", conn.Config())
 		defer conn.Close(ctx)
 	}
 

@@ -38,7 +38,7 @@ func New(host, key string, metricsUC metricscollection.Usecase) *server {
 	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
 	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
 	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
-	r.MethodFunc(http.MethodGet, "/ping/", metricHandler.HandleDBPing)
+	r.MethodFunc(http.MethodGet, "/ping", metricHandler.HandleDBPing)
 
 	return &server{
 		router: r,

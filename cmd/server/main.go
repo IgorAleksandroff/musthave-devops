@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/IgorAleksandroff/musthave-devops/configuration/serverconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	})
 	metricsUC := metricscollection.NewUsecase(metricsRepo)
 
-	server := api.New(config.Host, metricsUC)
+	server := api.New(config.Host, config.HashKey, metricsUC)
 
 	metricsRepo.MemSync()
 

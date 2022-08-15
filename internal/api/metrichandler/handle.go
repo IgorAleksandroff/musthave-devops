@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/utils"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
 	"github.com/go-chi/chi"
 )
 
@@ -110,8 +113,15 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 
 	switch metric.MType {
 	case metricscollection.CounterTypeMetric:
+
 		if metric.Delta == nil {
 			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
+			return
+		}
+		hash := utils.GetHash(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta), h.hashKey)
+		if h.hashKey != serverconfig.DefaultEnvHashKey && hash != metric.Hash {
+			log.Println("hash isn't valid:", hash, metric)
+			http.Error(w, "hash isn't valid", http.StatusBadRequest)
 			return
 		}
 
@@ -119,6 +129,12 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 	case metricscollection.GaugeTypeMetric:
 		if metric.Value == nil {
 			http.Error(w, "empty value for type gauge. internal error", http.StatusBadRequest)
+			return
+		}
+		hash := utils.GetHash(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value), h.hashKey)
+		if h.hashKey != serverconfig.DefaultEnvHashKey && hash != metric.Hash {
+			log.Println("hash isn't valid:", hash, metric)
+			http.Error(w, "hash isn't valid", http.StatusBadRequest)
 			return
 		}
 
@@ -149,17 +165,18 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	reader := json.NewDecoder(r.Body)
 	reader.Decode(&metric)
 
-	switch metric.MType {
-	case metricscollection.CounterTypeMetric:
-	case metricscollection.GaugeTypeMetric:
-	default:
-		http.Error(w, "unknown handler", http.StatusNotImplemented)
-		return
-	}
-
 	m, errMetric := h.metricsUC.GetMetric(metric.ID)
 	if errMetric != nil || metric.MType != m.MType {
 		http.Error(w, errMetric.Error(), http.StatusNotFound)
+		return
+	}
+	switch metric.MType {
+	case metricscollection.CounterTypeMetric:
+		m.Hash = utils.GetHash(fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta), h.hashKey)
+	case metricscollection.GaugeTypeMetric:
+		m.Hash = utils.GetHash(fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value), h.hashKey)
+	default:
+		http.Error(w, "unknown handler", http.StatusNotImplemented)
 		return
 	}
 

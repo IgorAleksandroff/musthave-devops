@@ -3,16 +3,16 @@ package main
 import (
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/configuration/clientconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/clientconfig"
 )
 
 func main() {
 	config := clientconfig.Read()
 
 	client := devopsserver.NewClient(config.Host)
-	runtimeMetricsRepo := runtimemetrics.NewRepository()
+	runtimeMetricsRepo := runtimemetrics.NewRepository(config.HashKey)
 	runtimeMetricsUC := runtimemetrics.NewUsecase(runtimeMetricsRepo, client)
 
 	pollTicker := time.NewTicker(config.PollInterval)

@@ -70,15 +70,15 @@ func (r *rep) SaveMetric(value metricscollection.Metrics) {
 }
 
 func (r *rep) GetMetric(name string) (*metricscollection.Metrics, error) {
-	var m *metricscollection.Metrics
+	var m metricscollection.Metrics
 
 	row := r.db.QueryRow(r.ctx, queryGet, name)
-	if err := row.Scan(m.ID, m.MType, m.Delta, m.Value, m.Hash); err != nil {
+	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
 		log.Printf("%v: can not found a metric: %s\n", err, name)
 		return nil, err
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
@@ -89,13 +89,13 @@ func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
 		return result
 	}
 	for rows.Next() {
-		var m *metricscollection.Metrics
-		if err = rows.Scan(m.ID, m.MType, m.Delta, m.Value, m.Hash); err != nil {
+		var m metricscollection.Metrics
+		if err = rows.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
 			log.Printf("can not scan a metric: %v\n", err)
 			continue
 		}
 
-		result[m.ID] = *m
+		result[m.ID] = m
 	}
 	if rows.Err() != nil {
 		log.Printf("can not get all metrics: %v\n", err)

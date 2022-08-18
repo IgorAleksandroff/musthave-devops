@@ -12,6 +12,7 @@ type Usecase interface {
 	SaveCounterMetric(value Metrics)
 	GetMetric(name string) (*Metrics, error)
 	GetMetricsValue() map[string]string
+	SaveMetrics(metrics []Metrics)
 }
 
 type usecase struct {
@@ -63,4 +64,15 @@ func (u usecase) GetMetricsValue() map[string]string {
 	}
 
 	return result
+}
+
+func (u usecase) SaveMetrics(metrics []Metrics) {
+	for _, metric := range metrics {
+		if m, err := u.repository.GetMetric(metric.ID); err == nil && m.Delta != nil && metric.Delta != nil {
+			delta := *m.Delta + *metric.Delta
+			metric.Delta = &delta
+		}
+
+		u.repository.SaveMetric(metric)
+	}
 }

@@ -12,6 +12,7 @@ type Repository interface {
 	SaveMetric(name string, value Getter)
 	GetMetric(name string) (m Metrics, err error)
 	GetMetricsName() []string
+	GetMetrics() []Metrics
 }
 
 type rep struct {
@@ -61,4 +62,12 @@ func (r *rep) GetMetricsName() []string {
 	}
 
 	return metricsName
+}
+
+func (r *rep) GetMetrics() []Metrics {
+	metrics := make([]Metrics, 0, len(r.storage))
+	for _, m := range r.storage {
+		metrics = append(metrics, m)
+	}
+	return metrics
 }

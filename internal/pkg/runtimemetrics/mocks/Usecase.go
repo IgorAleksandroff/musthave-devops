@@ -14,6 +14,11 @@ func (_m *Usecase) SendMetrics() {
 	_m.Called()
 }
 
+// SendMetricsBatch provides a mock function with given fields:
+func (_m *Usecase) SendMetricsBatch() {
+	_m.Called()
+}
+
 // UpdateMetrics provides a mock function with given fields:
 func (_m *Usecase) UpdateMetrics() {
 	_m.Called()

@@ -25,7 +25,7 @@ func main() {
 		case <-pollTicker.C:
 			runtimeMetricsUC.UpdateMetrics()
 		case <-reportTicker.C:
-			runtimeMetricsUC.SendMetrics()
+			runtimeMetricsUC.SendMetricsBatch()
 		}
 	}
 }

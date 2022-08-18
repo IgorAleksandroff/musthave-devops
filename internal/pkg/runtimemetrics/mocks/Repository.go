@@ -33,6 +33,22 @@ func (_m *Repository) GetMetric(name string) (runtimemetrics.Metrics, error) {
 	return r0, r1
 }
 
+// GetMetrics provides a mock function with given fields:
+func (_m *Repository) GetMetrics() []runtimemetrics.Metrics {
+	ret := _m.Called()
+
+	var r0 []runtimemetrics.Metrics
+	if rf, ok := ret.Get(0).(func() []runtimemetrics.Metrics); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]runtimemetrics.Metrics)
+		}
+	}
+
+	return r0
+}
+
 // GetMetricsName provides a mock function with given fields:
 func (_m *Repository) GetMetricsName() []string {
 	ret := _m.Called()

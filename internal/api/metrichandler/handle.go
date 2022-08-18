@@ -203,3 +203,28 @@ func (h *handler) HandleDBPing(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *handler) HandleJSONPostBatch(w http.ResponseWriter, r *http.Request) {
+	metrics := make([]metricscollection.Metrics, 0)
+	if r.Body == nil {
+		http.Error(w, "empty body", http.StatusBadRequest)
+		return
+	}
+
+	contentTypeHeaderValue := r.Header.Get("Content-Type")
+	if !strings.Contains(contentTypeHeaderValue, "application/json") {
+		http.Error(w, "unknown content-type", http.StatusNotImplemented)
+		return
+	}
+
+	reader := json.NewDecoder(r.Body)
+	reader.Decode(&metrics)
+	//if err := reader.Decode(&metric); err != nil {
+	//	http.Error(w, err.Error(), http.StatusBadRequest)
+	//	return
+	//}
+
+	h.metricsUC.SaveMetrics(metrics)
+
+	w.WriteHeader(http.StatusOK)
+}

@@ -40,6 +40,7 @@ func New(host, key string, metricsUC metricscollection.Usecase, pingDB repositor
 	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
 	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
 	r.MethodFunc(http.MethodGet, "/ping", metricHandler.HandleDBPing)
+	r.MethodFunc(http.MethodPost, "/updates/", metricHandler.HandleJSONPostBatch)
 
 	return &server{
 		router: r,

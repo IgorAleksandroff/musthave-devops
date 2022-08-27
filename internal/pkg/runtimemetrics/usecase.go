@@ -13,6 +13,7 @@ import (
 type Usecase interface {
 	UpdateMetrics()
 	SendMetrics()
+	SendMetricsBatch()
 }
 
 type usecase struct {
@@ -92,5 +93,12 @@ func (u usecase) SendMetrics() {
 		if _, err = u.devopsServerClient.DoPost(endpoint, metric); err != nil {
 			log.Println(err)
 		}
+	}
+}
+func (u usecase) SendMetricsBatch() {
+	metricsName := u.repository.GetMetrics()
+	endpoint := "/updates/"
+	if _, err := u.devopsServerClient.DoPost(endpoint, metricsName); err != nil {
+		log.Println(err)
 	}
 }

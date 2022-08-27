@@ -1,6 +1,10 @@
 package runtimemetrics
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/IgorAleksandroff/musthave-devops/utils"
+)
 
 //go:generate mockery --name Repository
 
@@ -8,14 +12,16 @@ type Repository interface {
 	SaveMetric(name string, value Getter)
 	GetMetric(name string) (m Metrics, err error)
 	GetMetricsName() []string
+	GetMetrics() []Metrics
 }
 
 type rep struct {
 	storage map[string]Metrics
+	hashKey string
 }
 
-func NewRepository() *rep {
-	return &rep{storage: make(map[string]Metrics)}
+func NewRepository(key string) *rep {
+	return &rep{storage: make(map[string]Metrics), hashKey: key}
 }
 
 func (r *rep) SaveMetric(name string, value Getter) {
@@ -26,6 +32,7 @@ func (r *rep) SaveMetric(name string, value Getter) {
 			ID:    name,
 			MType: value.GetType(),
 			Delta: &valueInt64,
+			Hash:  utils.GetHash(fmt.Sprintf("%s:counter:%d", name, valueInt64), r.hashKey),
 		}
 	case Gauge:
 		valueFloat64 := float64(value)
@@ -33,8 +40,10 @@ func (r *rep) SaveMetric(name string, value Getter) {
 			ID:    name,
 			MType: value.GetType(),
 			Value: &valueFloat64,
+			Hash:  utils.GetHash(fmt.Sprintf("%s:gauge:%f", name, valueFloat64), r.hashKey),
 		}
 	}
+	//log.Println(r.storage[name])
 }
 
 func (r *rep) GetMetric(name string) (m Metrics, err error) {
@@ -53,4 +62,12 @@ func (r *rep) GetMetricsName() []string {
 	}
 
 	return metricsName
+}
+
+func (r *rep) GetMetrics() []Metrics {
+	metrics := make([]Metrics, 0, len(r.storage))
+	for _, m := range r.storage {
+		metrics = append(metrics, m)
+	}
+	return metrics
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorypg"
 	"github.com/go-chi/chi"
 )
 
@@ -24,6 +25,34 @@ type gzipWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
+
+func New(host, key string, metricsUC metricscollection.Usecase, pingDB repositorypg.Pinger) *server {
+	r := chi.NewRouter()
+
+	r.Use(gzipUnzip)
+	r.Use(gzipHandle)
+
+	metricHandler := metrichandler.New(metricsUC, key, pingDB)
+
+	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
+	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
+	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
+	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
+	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
+	r.MethodFunc(http.MethodGet, "/ping", metricHandler.HandleDBPing)
+	r.MethodFunc(http.MethodPost, "/updates/", metricHandler.HandleJSONPostBatch)
+
+	return &server{
+		router: r,
+		host:   host,
+	}
+}
+
+func (s *server) Run() error {
+	return http.ListenAndServe(s.host, s.router)
+}
+
+var _ Server = &server{}
 
 func (w gzipWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
@@ -54,27 +83,29 @@ func gzipHandle(next http.Handler) http.Handler {
 	})
 }
 
-func New(host string, metricsUC metricscollection.Usecase) *server {
-	r := chi.NewRouter()
+func gzipUnzip(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// проверяем, что клиент поддерживает gzip-сжатие
+		if r.Header.Get(`Content-Encoding`) != `gzip` {
+			// если не сжато методом gzip, передаём управление
+			// дальше без изменений
+			next.ServeHTTP(w, r)
+			return
+		}
 
-	r.Use(gzipHandle)
+		// создаём *gzip.Reader, который будет читать тело запроса
+		// и распаковывать его
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// не забывайте потом закрыть *gzip.Reader
+		defer gz.Close()
 
-	metricHandler := metrichandler.New(metricsUC)
+		// меняем Body на тип gzip.Reader для распаковки данных
+		r.Body = gz
 
-	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
-	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
-	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
-	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
-	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
-
-	return &server{
-		router: r,
-		host:   host,
-	}
+		next.ServeHTTP(w, r)
+	})
 }
-
-func (s *server) Run() error {
-	return http.ListenAndServe(s.host, s.router)
-}
-
-var _ Server = &server{}

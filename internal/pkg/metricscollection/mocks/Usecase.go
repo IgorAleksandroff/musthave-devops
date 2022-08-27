@@ -61,6 +61,11 @@ func (_m *Usecase) SaveMetric(value metricscollection.Metrics) {
 	_m.Called(value)
 }
 
+// SaveMetrics provides a mock function with given fields: metrics
+func (_m *Usecase) SaveMetrics(metrics []metricscollection.Metrics) {
+	_m.Called(metrics)
+}
+
 type NewUsecaseT interface {
 	mock.TestingT
 	Cleanup(func())

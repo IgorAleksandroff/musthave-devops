@@ -4,7 +4,6 @@ import (
 	"log"
 	"math/rand"
 	"runtime"
-	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -93,12 +92,13 @@ func (u usecase) UpdateUtilMetrics() {
 	u.repository.SaveMetric("TotalMemory", Gauge(float64(v.Total)))
 	u.repository.SaveMetric("FreeMemory", Gauge(float64(v.Free)))
 
-	cpuUtilization, err := cpu.Percent(time.Second*10, false)
+	cpuUtilization, err := cpu.Percent(0, false)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	//log.Println(cpuUtilization)
 	u.repository.SaveMetric("CPUutilization1", Gauge(cpuUtilization[0]))
 
 }

@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	ctx, closeCtx := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, closeCtx := context.WithTimeout(context.Background(), 10*time.Second)
 	defer closeCtx()
 
 	config := serverconfig.Read()

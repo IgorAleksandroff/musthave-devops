@@ -27,6 +27,9 @@ func NewRepository(key string) *rep {
 }
 
 func (r *rep) SaveMetric(name string, value Getter) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	switch value := value.(type) {
 	case Counter:
 		valueInt64 := int64(value)

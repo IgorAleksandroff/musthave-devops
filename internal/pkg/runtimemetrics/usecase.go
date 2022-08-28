@@ -4,8 +4,11 @@ import (
 	"log"
 	"math/rand"
 	"runtime"
+	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 //go:generate mockery --name Usecase
@@ -78,6 +81,26 @@ func (u usecase) UpdateMetrics() {
 	u.repository.SaveMetric("StackSys", Gauge(float64(memMetrics.StackSys)))
 	u.repository.SaveMetric("Sys", Gauge(float64(memMetrics.Sys)))
 	u.repository.SaveMetric("TotalAlloc", Gauge(float64(memMetrics.TotalAlloc)))
+}
+
+func (u usecase) UpdateUtilMetrics() {
+	v, err := mem.VirtualMemory()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	u.repository.SaveMetric("TotalMemory", Gauge(float64(v.Total)))
+	u.repository.SaveMetric("FreeMemory", Gauge(float64(v.Free)))
+
+	cpuUtilization, err := cpu.Percent(time.Second*10, false)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	u.repository.SaveMetric("CPUutilization1", Gauge(cpuUtilization[0]))
+
 }
 
 func (u usecase) SendMetrics() {

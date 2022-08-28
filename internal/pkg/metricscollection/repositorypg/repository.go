@@ -74,7 +74,7 @@ func (r *rep) GetMetric(name string) (*metricscollection.Metrics, error) {
 
 	row := r.db.QueryRow(r.ctx, queryGet, name)
 	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
-		log.Printf("%v: can not found a metric: %s\n", err, name)
+		log.Printf("%v: can not found a metric in DB: %s\n", err, name)
 		return nil, err
 	}
 

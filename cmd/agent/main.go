@@ -23,9 +23,9 @@ func main() {
 	for {
 		select {
 		case <-pollTicker.C:
-			runtimeMetricsUC.UpdateMetrics()
+			go runtimeMetricsUC.UpdateMetrics()
 		case <-reportTicker.C:
-			runtimeMetricsUC.SendMetricsBatch()
+			go runtimeMetricsUC.SendMetricsBatch()
 		}
 	}
 }

@@ -2,6 +2,7 @@ package runtimemetrics
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/IgorAleksandroff/musthave-devops/utils"
 )
@@ -17,11 +18,12 @@ type Repository interface {
 
 type rep struct {
 	storage map[string]Metrics
+	mu      sync.Mutex
 	hashKey string
 }
 
 func NewRepository(key string) *rep {
-	return &rep{storage: make(map[string]Metrics), hashKey: key}
+	return &rep{storage: make(map[string]Metrics), mu: sync.Mutex{}, hashKey: key}
 }
 
 func (r *rep) SaveMetric(name string, value Getter) {
@@ -65,6 +67,9 @@ func (r *rep) GetMetricsName() []string {
 }
 
 func (r *rep) GetMetrics() []Metrics {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	metrics := make([]Metrics, 0, len(r.storage))
 	for _, m := range r.storage {
 		metrics = append(metrics, m)

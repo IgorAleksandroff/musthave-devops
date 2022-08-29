@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
+	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/clientconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
-	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/clientconfig"
 )
 
 func main() {
-	config := clientconfig.Read()
+	config := clientconfig.NewConfig()
 
 	client := devopsserver.NewClient(config.Host)
 	runtimeMetricsRepo := runtimemetrics.NewRepository(config.HashKey)
@@ -23,9 +23,10 @@ func main() {
 	for {
 		select {
 		case <-pollTicker.C:
-			runtimeMetricsUC.UpdateMetrics()
+			go runtimeMetricsUC.UpdateUtilMetrics()
+			go runtimeMetricsUC.UpdateMetrics()
 		case <-reportTicker.C:
-			runtimeMetricsUC.SendMetricsBatch()
+			go runtimeMetricsUC.SendMetricsBatch()
 		}
 	}
 }

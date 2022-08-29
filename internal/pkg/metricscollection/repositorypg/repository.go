@@ -3,6 +3,7 @@ package repositorypg
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
@@ -33,12 +34,23 @@ type rep struct {
 	db  *pgxpool.Pool
 }
 
-func NewRepository(ctx context.Context, db *pgxpool.Pool) *rep {
-	return &rep{ctx: ctx, db: db}
+func NewRepository(ctx context.Context, addressDB string) (*rep, error) {
+	conn, err := pgxpool.Connect(ctx, addressDB)
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to database: %v", err)
+	}
+	log.Printf("connect to database: %v", conn.Config())
+
+	repositoryPG := rep{ctx: ctx, db: conn}
+	if err = repositoryPG.Init(); err != nil {
+		return nil, fmt.Errorf("init database error: %v", err)
+	}
+
+	return &repositoryPG, nil
 }
 
-func NewPinger(ctx context.Context, db *pgxpool.Pool) *rep {
-	return &rep{ctx: ctx, db: db}
+func NewPinger(ctx context.Context) *rep {
+	return &rep{ctx: ctx, db: &pgxpool.Pool{}}
 }
 
 func (r *rep) Ping() error {
@@ -74,7 +86,7 @@ func (r *rep) GetMetric(name string) (*metricscollection.Metrics, error) {
 
 	row := r.db.QueryRow(r.ctx, queryGet, name)
 	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
-		log.Printf("%v: can not found a metric: %s\n", err, name)
+		log.Printf("%v: can not found a metric in DB: %s\n", err, name)
 		return nil, err
 	}
 
@@ -102,4 +114,8 @@ func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
 	}
 
 	return result
+}
+
+func (r *rep) Close() {
+	r.db.Close()
 }

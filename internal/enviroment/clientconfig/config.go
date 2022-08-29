@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment"
+	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment"
 )
 
 const (
@@ -28,7 +28,7 @@ type config struct {
 	HashKey        string
 }
 
-func Read() config {
+func NewConfig() config {
 	log.Println("os:", os.Args)
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", DefaultPollInterval, "частота обновления метрик в секундах")

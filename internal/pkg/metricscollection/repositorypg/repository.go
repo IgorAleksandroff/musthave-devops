@@ -3,7 +3,6 @@ package repositorypg
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
@@ -34,24 +33,12 @@ type rep struct {
 	db  *pgxpool.Pool
 }
 
-func NewRepository(ctx context.Context, addressDB string) (*rep, error) {
-	conn, err := pgxpool.Connect(ctx, addressDB)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
-	}
-	log.Printf("connect to DB: %v", conn.Config())
-	defer conn.Close()
-
-	repositoryPG := rep{ctx: ctx, db: conn}
-	if err = repositoryPG.Init(); err != nil {
-		return nil, fmt.Errorf("Init DB Error: %v\n", err)
-	}
-
-	return &repositoryPG, nil
+func NewRepository(ctx context.Context, db *pgxpool.Pool) *rep {
+	return &rep{ctx: ctx, db: db}
 }
 
-func NewPinger(ctx context.Context) *rep {
-	return &rep{ctx: ctx, db: &pgxpool.Pool{}}
+func NewPinger(ctx context.Context, db *pgxpool.Pool) *rep {
+	return &rep{ctx: ctx, db: db}
 }
 
 func (r *rep) Ping() error {

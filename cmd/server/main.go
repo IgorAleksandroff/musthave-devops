@@ -45,7 +45,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		connectionTester = repositorypg.NewPinger(ctx, conn)
+		connectionTester = repositoryPG
 		metricsUC = metricscollection.NewUsecase(repositoryPG)
 	} else {
 		repositoryMemo.MemSync()

@@ -29,10 +29,11 @@ func main() {
 
 	var conn *pgxpool.Pool
 	var err error
+	connectionTester := repositorypg.NewPinger(ctx, conn)
 	if config.AddressDB != "" {
 		conn, err = pgxpool.Connect(ctx, config.AddressDB)
 		if err != nil {
-			log.Fatalf("Unable to connect to database: %v\n", err)
+			log.Fatalf("unable to connect to database: %v", err)
 			os.Exit(1)
 		}
 		log.Printf("connect to DB: %v", conn.Config())
@@ -40,16 +41,15 @@ func main() {
 
 		repositoryPG := repositorypg.NewRepository(ctx, conn)
 		if err = repositoryPG.Init(); err != nil {
-			log.Fatalf("Init DB Error: %v\n", err)
+			log.Fatalf("init db error: %v", err)
 			os.Exit(1)
 		}
 
+		connectionTester = repositorypg.NewPinger(ctx, conn)
 		metricsUC = metricscollection.NewUsecase(repositoryPG)
 	} else {
 		repositoryMemo.MemSync()
 	}
-
-	connectionTester := repositorypg.NewPinger(ctx, conn)
 
 	server := api.New(config.Host, config.HashKey, metricsUC, connectionTester)
 

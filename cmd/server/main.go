@@ -7,17 +7,17 @@ import (
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
-	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/serverconfig"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorymemo"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorypg"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
 )
 
 func main() {
 	ctx, closeCtx := context.WithTimeout(context.Background(), 10*time.Second)
 	defer closeCtx()
 
-	config := serverconfig.NewConfig()
+	config := serverconfig.Read()
 
 	repositoryMemo := repositorymemo.NewRepository(ctx, repositorymemo.Config{
 		StorePath:     config.StorePath,
@@ -40,7 +40,7 @@ func main() {
 		repositoryMemo.MemSync()
 	}
 
-	server := api.NewServer(config.Host, config.HashKey, metricsUC, connectionTester)
+	server := api.New(config.Host, config.HashKey, metricsUC, connectionTester)
 
 	log.Fatal(server.Run())
 }

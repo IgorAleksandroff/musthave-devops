@@ -1,13 +1,8 @@
 package metricscollection
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"os"
-
-	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/clientconfig"
 )
 
 const GaugeTypeMetric = "gauge"
@@ -21,30 +16,17 @@ type Metrics struct {
 	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
-func (m *Metrics) Copy() Metrics {
-	mOut := *m
-	if m.Delta != nil {
-		p := *m.Delta
+func CopyMetric(mIn Metrics) Metrics {
+	mOut := mIn
+	if mIn.Delta != nil {
+		p := *mIn.Delta
 		mOut.Delta = &p
 	}
-	if m.Value != nil {
-		p := *m.Value
+	if mIn.Value != nil {
+		p := *mIn.Value
 		mOut.Value = &p
 	}
 	return mOut
-}
-
-func (m *Metrics) CalcHash(value, key string) {
-	if key == clientconfig.DefaultEnvHashKey {
-		m.Hash = ""
-		return
-	}
-	// подписываем алгоритмом HMAC, используя SHA256
-	h := hmac.New(sha256.New, []byte(key))
-	h.Write([]byte(value))
-	dst := h.Sum(nil)
-
-	m.Hash = fmt.Sprintf("%x", dst)
 }
 
 func DownloadMetrics(path string) (map[string]Metrics, error) {

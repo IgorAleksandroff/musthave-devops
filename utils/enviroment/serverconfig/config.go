@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment"
+	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment"
 )
 
 const (
@@ -34,7 +34,7 @@ type config struct {
 	AddressDB     string
 }
 
-func NewConfig() config {
+func Read() config {
 	log.Println("os:", os.Args)
 	hostFlag := flag.String("a", DefaultServerURL, "адрес и порт сервера")
 	storeIntervalFlag := flag.Duration("i", DefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")

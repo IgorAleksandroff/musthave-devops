@@ -37,14 +37,14 @@ type rep struct {
 func NewRepository(ctx context.Context, addressDB string) (*rep, error) {
 	conn, err := pgxpool.Connect(ctx, addressDB)
 	if err != nil {
-		return nil, fmt.Errorf("unable to connect to database: %v", err)
+		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
 	log.Printf("connect to DB: %v", conn.Config())
 	defer conn.Close()
 
 	repositoryPG := rep{ctx: ctx, db: conn}
 	if err = repositoryPG.Init(); err != nil {
-		return nil, fmt.Errorf("init db error: %v", err)
+		return nil, fmt.Errorf("Init DB Error: %v\n", err)
 	}
 
 	return &repositoryPG, nil

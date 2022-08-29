@@ -27,11 +27,9 @@ func main() {
 	})
 	metricsUC := metricscollection.NewUsecase(repositoryMemo)
 
-	var conn *pgxpool.Pool
-	var err error
-	connectionTester := repositorypg.NewPinger(ctx, conn)
+	connectionTester := repositorypg.NewPinger(ctx)
 	if config.AddressDB != "" {
-		conn, err = pgxpool.Connect(ctx, config.AddressDB)
+		conn, err := pgxpool.Connect(ctx, config.AddressDB)
 		if err != nil {
 			log.Fatalf("unable to connect to database: %v", err)
 			os.Exit(1)

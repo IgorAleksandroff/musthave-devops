@@ -37,8 +37,8 @@ func NewRepository(ctx context.Context, db *pgxpool.Pool) *rep {
 	return &rep{ctx: ctx, db: db}
 }
 
-func NewPinger(ctx context.Context, db *pgxpool.Pool) *rep {
-	return &rep{ctx: ctx, db: db}
+func NewPinger(ctx context.Context) *rep {
+	return &rep{ctx: ctx, db: &pgxpool.Pool{}}
 }
 
 func (r *rep) Ping() error {

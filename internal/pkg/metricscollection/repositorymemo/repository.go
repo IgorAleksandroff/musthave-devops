@@ -57,7 +57,7 @@ func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
 	result := make(map[string]metricscollection.Metrics, len(r.metricDB))
 
 	for name, metric := range r.metricDB {
-		result[name] = metricscollection.CopyMetric(metric)
+		result[name] = metric.Copy()
 	}
 
 	return result

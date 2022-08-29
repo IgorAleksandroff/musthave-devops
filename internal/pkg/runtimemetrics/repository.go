@@ -3,8 +3,6 @@ package runtimemetrics
 import (
 	"fmt"
 	"sync"
-
-	"github.com/IgorAleksandroff/musthave-devops/utils"
 )
 
 //go:generate mockery --name Repository
@@ -33,20 +31,22 @@ func (r *rep) SaveMetric(name string, value Getter) {
 	switch value := value.(type) {
 	case Counter:
 		valueInt64 := int64(value)
-		r.storage[name] = Metrics{
+		metric := Metrics{
 			ID:    name,
 			MType: value.GetType(),
 			Delta: &valueInt64,
-			Hash:  utils.GetHash(fmt.Sprintf("%s:counter:%d", name, valueInt64), r.hashKey),
 		}
+		metric.CalcHash(fmt.Sprintf("%s:counter:%d", name, valueInt64), r.hashKey)
+		r.storage[name] = metric
 	case Gauge:
 		valueFloat64 := float64(value)
-		r.storage[name] = Metrics{
+		metric := Metrics{
 			ID:    name,
 			MType: value.GetType(),
 			Value: &valueFloat64,
-			Hash:  utils.GetHash(fmt.Sprintf("%s:gauge:%f", name, valueFloat64), r.hashKey),
 		}
+		metric.CalcHash(fmt.Sprintf("%s:gauge:%f", name, valueFloat64), r.hashKey)
+		r.storage[name] = metric
 	}
 	//log.Println(r.storage[name])
 }

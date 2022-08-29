@@ -26,7 +26,7 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func New(host, key string, metricsUC metricscollection.Usecase, pingDB repositorypg.Pinger) *server {
+func NewServer(host, key string, metricsUC metricscollection.Usecase, pingDB repositorypg.Pinger) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)

@@ -11,7 +11,6 @@ import (
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorymemo"
 	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorypg"
 	"github.com/IgorAleksandroff/musthave-devops/utils/enviroment/serverconfig"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 func main() {
@@ -29,19 +28,12 @@ func main() {
 
 	connectionTester := repositorypg.NewPinger(ctx)
 	if config.AddressDB != "" {
-		conn, err := pgxpool.Connect(ctx, config.AddressDB)
+		repositoryPG, err := repositorypg.NewRepository(ctx, config.AddressDB)
 		if err != nil {
-			log.Fatalf("unable to connect to database: %v", err)
+			log.Fatalf(err.Error())
 			os.Exit(1)
 		}
-		log.Printf("connect to DB: %v", conn.Config())
-		defer conn.Close()
-
-		repositoryPG := repositorypg.NewRepository(ctx, conn)
-		if err = repositoryPG.Init(); err != nil {
-			log.Fatalf("init db error: %v", err)
-			os.Exit(1)
-		}
+		defer repositoryPG.Close()
 
 		connectionTester = repositoryPG
 		metricsUC = metricscollection.NewUsecase(repositoryPG)

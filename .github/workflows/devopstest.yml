@@ -213,204 +213,204 @@ jobs:
             -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
             -file-storage-path=$TEMP_FILE
 
-## VII. Задание к седьмому инкременту.
-## Доработать код, что бы он умел принимать аргументы с использованием флагов.
-## * Аргументы Сервера
-##     ADDRESS, через флаг "-a=<ЗНАЧЕНИЕ>"
-##     RESTORE, через флаг "-r=<ЗНАЧЕНИЕ>"
-##     STORE_INTERVAL, через флаг "-i=<ЗНАЧЕНИЕ>"
-##     STORE_FILE, через флаг "-f=<ЗНАЧЕНИЕ>"
-## * Аргументы Агента
-##    ADDRESS, через флаг: "-a=<ЗНАЧЕНИЕ>"
-##    REPORT_INTERVAL, через флаг: "-r=<ЗНАЧЕНИЕ>"
-##    POLL_INTERVAL, через флаг: "-p=<ЗНАЧЕНИЕ>"
-## Во всех случаях иметь значения по умолчанию и реализовать приоритет значений полученных через ENV, перед значениями задаваемые посредством флагов.
-#
-#      - name: "Code increment #7"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration7$ \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -file-storage-path=$TEMP_FILE
-#
-## VIII. Задание к восьмому инкременту.
-## Доработать код сервера, для реализации механизма cжатия данных сервером в формате gzip
-## для контента с типом: application/json и text/html
-#
-#      - name: "Code increment #8"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration8 \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -file-storage-path=$TEMP_FILE
-#
-## IX. Задание к девятому инкременту.
-## Внимание: это учебный пример, в котором сделан акцент на закреплении пройденной темы,
-## а не на безопасности. В реальной жизни использовать подпись таким образом не следует.
-## Например остается возможность передать серверу перехваченные ранее данные с корректным хешом.
-## (старое значение счетчика)
-#
-## Реализовать механизм подписывания передаваемых данных по алгоритму sha256
-## Для этого расширим структуру
-##   type Metrics struct {
-## 	    ID    string   `json:"id"`              // Имя метрики
-## 	    MType string   `json:"type"`            // Параметр принимающий значение gauge или counter
-## 	    Delta *int64   `json:"delta,omitempty"` // Значение метрики в случае передачи counter
-## 	    Value *float64 `json:"value,omitempty"` // Значение метрики в случае передачи gauge
-## 	    Hash  string   `json:"hash,omitempty"`  // Значение hash-функции
-##   }
-## Хеш необходимо считать от строки, с учетом ключа, который предан агенту/серверу на старте.
-##   ** для counter - hash(fmt.Sprintf("%s:counter:%d", id, delta), key)
-##   ** для gauge - hash(fmt.Sprintf("%s:gauge:%f", id, value), key)
-#
-## Агент:
-##   * добавить поддержку аргумента через флаг "-k=<КЛЮЧ>"
-##   * добавить поддержку аргумента через переменную окружения "KEY=<КЛЮЧ>"
-##   * при наличии ключа, агент должен вычислять хеш и передавать в поле hash запроса.
-#
-## Сервер:
-##   * добавить поддержку аргумента через флаг "-k=<КЛЮЧ>"
-##   * добавить поддержку аргумента через переменную окружения "KEY=<КЛЮЧ>"
-##   * при наличии ключа, во время обработки запроса, сервер должен проверять соответствие полученного и вычисленного хеша.
-##     при не совпадении отбрасывать полученные данные и возвращать http.StatusBadRequest
-##   * при наличии ключа, на этапе формирования ответа, сервер должен
-##     вычислять хеш и передавать его в соответствующем поле hash ответа.
-#
-#      - name: "Code increment #9"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration9$ \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -file-storage-path=$TEMP_FILE \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -key="${TEMP_FILE}"
-#
-## X. Задание к десятому инкременту.
-## Сервер:
-## * Добавьте функциональность подключения к базе данных. В качестве СУБД используйте PostgreSQL версии не ниже 10.
-## * Добавьте хендлер GET /ping, который при запросе проверяет соединение с базой данных.
-##   При успешной проверке хендлер должен вернуть HTTP-статус 200 OK, при неуспешной — 500 Internal Server Error.
-## * Строка с адресом подключения к БД должна получаться из переменной окружения DATABASE_DSN или флага командной строки -d.
-##   Использование этого параметра имеет приоритет над параметром -file-storage-path и автоматически задействует функциональность сервера БД
-## NOTE: Для хранения значений gauge рекомендуется использовать тип: double precision
-#      - name: "Code increment #10"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration10[b]*$ \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -key="${TEMP_FILE}"
-#
-## XI. Задание к одиннадцатому инкременту.
-## Сервер:
-## * Перепишите сервер так, чтобы СУБД PostgresSQL стала хранилищем метрик вместо текущей реализации.
-##   Сервису необходимо самостоятельно создать все необходимые таблицы в базе данных,
-##   схема и формат хранения остаются на ваше усмотрение.
-#
-#      - name: "Code increment #11"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration11$ \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -key="${TEMP_FILE}"
-#
-## XII. Задание к двенадцатому инкременту.
-## Сервер:
-## * Добавьте новый хендлер POST /updates/ принимающий в теле запроса множество метрик в формате: []Metrics (списка метрик)
-## Агент:
-## * Научите агента работать с использованием нового API (отправлять метрики батчами)
-## Стоит помнить:
-## * Необходимо соблюдать обратную совместимость
-## * Отправлять пустые батчи не нужно
-## * Мы умеем сжимать контент по алгоритму gzip
-## * Изменение в базе можно выполнять в рамках одной транзакции/одного запроса
-#
-#      - name: "Code increment #12"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration12$ \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -key="${TEMP_FILE}"
-#
-#
-## XIII. Задание к тринадцатому инкременту.
-## Измените весь свой код в соответствии со знаниями, полученными в данной главе.
-## * Добавьте механизмы обработки ошибок (там где это уместно)
-## * Для формирования отладочных сообщений, используйте стандартный логгер или одну из популярных библиотек логгирования.
-## * Не используйте функции fmt.Print* для вывода отладочной информации в коде сервера и агента
-#
-#      - name: "Code increment #13"
-#        if: always()
-#        run: |
-#          devopstest -test.v -test.run=^TestIteration13$ \
-#            -source-path=.
-#
-## XIV. Задание к четыринадцатому инкременту.
-## Агент:
-## Перепланируйте архитектуру агента таким образом,
-## что бы сбор метрик (опрос runtime) и их отправка осуществлялись в разных горутинах.
-## Добавьте еще одну горутину которая бы собирала дополнительные метрики
-## (с использованием пакета https://github.com/shirou/gopsutil)
-##   * Имя метрики: "TotalMemory", тип: gauge - общее количество памяти
-##   * Имя метрики: "FreeMemory", тип: gauge - общее количество свободной памяти
-##   * Имя метрики: "CPUutilization1", тип: gauge - загрузка ядра в процентах за 10 секунд (точное количество - по числу CPU определяемое во время исполнения)
-#
-#      - name: "Code increment #14"
-#        if: always()
-#        run: |
-#          SERVER_PORT=$(random unused-port)
-#          ADDRESS="localhost:${SERVER_PORT}"
-#          TEMP_FILE=$(random tempfile)
-#          devopstest -test.v -test.run=^TestIteration14$ \
-#            -source-path=. \
-#            -agent-binary-path=cmd/agent/agent \
-#            -binary-path=cmd/server/server \
-#            -server-port=$SERVER_PORT \
-#            -file-storage-path=$TEMP_FILE \
-#            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
-#            -key="${TEMP_FILE}"
-#
-#      - name: "Code increment #14 (race detection)"
-#        if: always()
-#        run: |
-#          go test -v -race ./...
+# VII. Задание к седьмому инкременту.
+# Доработать код, что бы он умел принимать аргументы с использованием флагов.
+# * Аргументы Сервера
+#     ADDRESS, через флаг "-a=<ЗНАЧЕНИЕ>"
+#     RESTORE, через флаг "-r=<ЗНАЧЕНИЕ>"
+#     STORE_INTERVAL, через флаг "-i=<ЗНАЧЕНИЕ>"
+#     STORE_FILE, через флаг "-f=<ЗНАЧЕНИЕ>"
+# * Аргументы Агента
+#    ADDRESS, через флаг: "-a=<ЗНАЧЕНИЕ>"
+#    REPORT_INTERVAL, через флаг: "-r=<ЗНАЧЕНИЕ>"
+#    POLL_INTERVAL, через флаг: "-p=<ЗНАЧЕНИЕ>"
+# Во всех случаях иметь значения по умолчанию и реализовать приоритет значений полученных через ENV, перед значениями задаваемые посредством флагов.
+
+      - name: "Code increment #7"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration7$ \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -file-storage-path=$TEMP_FILE
+
+# VIII. Задание к восьмому инкременту.
+# Доработать код сервера, для реализации механизма cжатия данных сервером в формате gzip
+# для контента с типом: application/json и text/html
+
+      - name: "Code increment #8"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration8 \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -file-storage-path=$TEMP_FILE
+
+# IX. Задание к девятому инкременту.
+# Внимание: это учебный пример, в котором сделан акцент на закреплении пройденной темы,
+# а не на безопасности. В реальной жизни использовать подпись таким образом не следует.
+# Например остается возможность передать серверу перехваченные ранее данные с корректным хешом.
+# (старое значение счетчика)
+
+# Реализовать механизм подписывания передаваемых данных по алгоритму sha256
+# Для этого расширим структуру
+#   type Metrics struct {
+# 	    ID    string   `json:"id"`              // Имя метрики
+# 	    MType string   `json:"type"`            // Параметр принимающий значение gauge или counter
+# 	    Delta *int64   `json:"delta,omitempty"` // Значение метрики в случае передачи counter
+# 	    Value *float64 `json:"value,omitempty"` // Значение метрики в случае передачи gauge
+# 	    Hash  string   `json:"hash,omitempty"`  // Значение hash-функции
+#   }
+# Хеш необходимо считать от строки, с учетом ключа, который предан агенту/серверу на старте.
+#   ** для counter - hash(fmt.Sprintf("%s:counter:%d", id, delta), key)
+#   ** для gauge - hash(fmt.Sprintf("%s:gauge:%f", id, value), key)
+
+# Агент:
+#   * добавить поддержку аргумента через флаг "-k=<КЛЮЧ>"
+#   * добавить поддержку аргумента через переменную окружения "KEY=<КЛЮЧ>"
+#   * при наличии ключа, агент должен вычислять хеш и передавать в поле hash запроса.
+
+# Сервер:
+#   * добавить поддержку аргумента через флаг "-k=<КЛЮЧ>"
+#   * добавить поддержку аргумента через переменную окружения "KEY=<КЛЮЧ>"
+#   * при наличии ключа, во время обработки запроса, сервер должен проверять соответствие полученного и вычисленного хеша.
+#     при не совпадении отбрасывать полученные данные и возвращать http.StatusBadRequest
+#   * при наличии ключа, на этапе формирования ответа, сервер должен
+#     вычислять хеш и передавать его в соответствующем поле hash ответа.
+
+      - name: "Code increment #9"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration9$ \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -file-storage-path=$TEMP_FILE \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -key="${TEMP_FILE}"
+
+# X. Задание к десятому инкременту.
+# Сервер:
+# * Добавьте функциональность подключения к базе данных. В качестве СУБД используйте PostgreSQL версии не ниже 10.
+# * Добавьте хендлер GET /ping, который при запросе проверяет соединение с базой данных.
+#   При успешной проверке хендлер должен вернуть HTTP-статус 200 OK, при неуспешной — 500 Internal Server Error.
+# * Строка с адресом подключения к БД должна получаться из переменной окружения DATABASE_DSN или флага командной строки -d.
+#   Использование этого параметра имеет приоритет над параметром -file-storage-path и автоматически задействует функциональность сервера БД
+# NOTE: Для хранения значений gauge рекомендуется использовать тип: double precision
+      - name: "Code increment #10"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration10[b]*$ \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -key="${TEMP_FILE}"
+
+# XI. Задание к одиннадцатому инкременту.
+# Сервер:
+# * Перепишите сервер так, чтобы СУБД PostgresSQL стала хранилищем метрик вместо текущей реализации.
+#   Сервису необходимо самостоятельно создать все необходимые таблицы в базе данных,
+#   схема и формат хранения остаются на ваше усмотрение.
+
+      - name: "Code increment #11"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration11$ \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -key="${TEMP_FILE}"
+
+# XII. Задание к двенадцатому инкременту.
+# Сервер:
+# * Добавьте новый хендлер POST /updates/ принимающий в теле запроса множество метрик в формате: []Metrics (списка метрик)
+# Агент:
+# * Научите агента работать с использованием нового API (отправлять метрики батчами)
+# Стоит помнить:
+# * Необходимо соблюдать обратную совместимость
+# * Отправлять пустые батчи не нужно
+# * Мы умеем сжимать контент по алгоритму gzip
+# * Изменение в базе можно выполнять в рамках одной транзакции/одного запроса
+
+      - name: "Code increment #12"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration12$ \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -key="${TEMP_FILE}"
+
+
+# XIII. Задание к тринадцатому инкременту.
+# Измените весь свой код в соответствии со знаниями, полученными в данной главе.
+# * Добавьте механизмы обработки ошибок (там где это уместно)
+# * Для формирования отладочных сообщений, используйте стандартный логгер или одну из популярных библиотек логгирования.
+# * Не используйте функции fmt.Print* для вывода отладочной информации в коде сервера и агента
+
+      - name: "Code increment #13"
+        if: always()
+        run: |
+          devopstest -test.v -test.run=^TestIteration13$ \
+            -source-path=.
+
+# XIV. Задание к четыринадцатому инкременту.
+# Агент:
+# Перепланируйте архитектуру агента таким образом,
+# что бы сбор метрик (опрос runtime) и их отправка осуществлялись в разных горутинах.
+# Добавьте еще одну горутину которая бы собирала дополнительные метрики
+# (с использованием пакета https://github.com/shirou/gopsutil)
+#   * Имя метрики: "TotalMemory", тип: gauge - общее количество памяти
+#   * Имя метрики: "FreeMemory", тип: gauge - общее количество свободной памяти
+#   * Имя метрики: "CPUutilization1", тип: gauge - загрузка ядра в процентах за 10 секунд (точное количество - по числу CPU определяемое во время исполнения)
+
+      - name: "Code increment #14"
+        if: always()
+        run: |
+          SERVER_PORT=$(random unused-port)
+          ADDRESS="localhost:${SERVER_PORT}"
+          TEMP_FILE=$(random tempfile)
+          devopstest -test.v -test.run=^TestIteration14$ \
+            -source-path=. \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=$SERVER_PORT \
+            -file-storage-path=$TEMP_FILE \
+            -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' \
+            -key="${TEMP_FILE}"
+
+      - name: "Code increment #14 (race detection)"
+        if: always()
+        run: |
+          go test -v -race ./...

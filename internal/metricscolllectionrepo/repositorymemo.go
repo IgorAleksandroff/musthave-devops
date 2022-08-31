@@ -1,4 +1,4 @@
-package repositorymemo
+package metricscolllectionrepo
 
 import (
 	"context"
@@ -8,35 +8,35 @@ import (
 	"os"
 	"time"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
 )
 
-type Config struct {
+type MemoConfig struct {
 	StorePath     string
 	StoreInterval time.Duration
 	Restore       bool
 }
 
-type rep struct {
+type MemoRep struct {
 	ctx      context.Context
-	metricDB map[string]entity.Metrics
-	cfg      Config
+	metricDB map[string]metricscollectionentity.Metrics
+	cfg      MemoConfig
 }
 
-func NewRepository(ctx context.Context, cfg Config) *rep {
-	metricDB := make(map[string]entity.Metrics)
+func NewMemoRepository(ctx context.Context, cfg MemoConfig) *MemoRep {
+	metricDB := make(map[string]metricscollectionentity.Metrics)
 	var err error
 
 	if cfg.Restore && cfg.StorePath != "" {
-		if metricDB, err = entity.DownloadMetrics(cfg.StorePath); err != nil {
+		if metricDB, err = metricscollectionentity.DownloadMetrics(cfg.StorePath); err != nil {
 			log.Printf("error to restore metrics from %s: %s.\n", cfg.StorePath, err.Error())
 		}
 	}
 
-	return &rep{ctx: ctx, metricDB: metricDB, cfg: cfg}
+	return &MemoRep{ctx: ctx, metricDB: metricDB, cfg: cfg}
 }
 
-func (r *rep) SaveMetric(value entity.Metrics) {
+func (r *MemoRep) SaveMetric(value metricscollectionentity.Metrics) {
 	r.metricDB[value.ID] = value
 	if r.cfg.StoreInterval == 0 && r.cfg.StorePath != "" {
 		if err := r.flushMemo(); err != nil {
@@ -45,7 +45,7 @@ func (r *rep) SaveMetric(value entity.Metrics) {
 	}
 }
 
-func (r *rep) GetMetric(name string) (*entity.Metrics, error) {
+func (r *MemoRep) GetMetric(name string) (*metricscollectionentity.Metrics, error) {
 	if metric, ok := r.metricDB[name]; ok {
 		return &metric, nil
 	}
@@ -53,8 +53,8 @@ func (r *rep) GetMetric(name string) (*entity.Metrics, error) {
 	return nil, fmt.Errorf("can not found a metric: %s", name)
 }
 
-func (r *rep) GetMetrics() map[string]entity.Metrics {
-	result := make(map[string]entity.Metrics, len(r.metricDB))
+func (r *MemoRep) GetMetrics() map[string]metricscollectionentity.Metrics {
+	result := make(map[string]metricscollectionentity.Metrics, len(r.metricDB))
 
 	for name, metric := range r.metricDB {
 		result[name] = metric.Copy()
@@ -63,7 +63,7 @@ func (r *rep) GetMetrics() map[string]entity.Metrics {
 	return result
 }
 
-func (r *rep) MemSync() {
+func (r *MemoRep) MemSync() {
 	go func() {
 		ticker := time.NewTicker(r.cfg.StoreInterval)
 		if r.cfg.StoreInterval == 0 {
@@ -88,13 +88,13 @@ func (r *rep) MemSync() {
 	}()
 }
 
-func (r *rep) Ping() error {
+func (r *MemoRep) Ping() error {
 	return nil
 }
 
-func (r *rep) Close() {}
+func (r *MemoRep) Close() {}
 
-func (r *rep) flushMemo() error {
+func (r *MemoRep) flushMemo() error {
 	file, err := os.OpenFile(r.cfg.StorePath, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err

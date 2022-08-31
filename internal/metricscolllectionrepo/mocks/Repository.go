@@ -3,7 +3,8 @@
 package mocks
 
 import (
-	metricscollection "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
+	metricscollectionentity "github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -12,16 +13,21 @@ type Repository struct {
 	mock.Mock
 }
 
+// Close provides a mock function with given fields:
+func (_m *Repository) Close() {
+	_m.Called()
+}
+
 // GetMetric provides a mock function with given fields: name
-func (_m *Repository) GetMetric(name string) (*metricscollection.Metrics, error) {
+func (_m *Repository) GetMetric(name string) (*metricscollectionentity.Metrics, error) {
 	ret := _m.Called(name)
 
-	var r0 *metricscollection.Metrics
-	if rf, ok := ret.Get(0).(func(string) *metricscollection.Metrics); ok {
+	var r0 *metricscollectionentity.Metrics
+	if rf, ok := ret.Get(0).(func(string) *metricscollectionentity.Metrics); ok {
 		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*metricscollection.Metrics)
+			r0 = ret.Get(0).(*metricscollectionentity.Metrics)
 		}
 	}
 
@@ -36,23 +42,37 @@ func (_m *Repository) GetMetric(name string) (*metricscollection.Metrics, error)
 }
 
 // GetMetrics provides a mock function with given fields:
-func (_m *Repository) GetMetrics() map[string]metricscollection.Metrics {
+func (_m *Repository) GetMetrics() map[string]metricscollectionentity.Metrics {
 	ret := _m.Called()
 
-	var r0 map[string]metricscollection.Metrics
-	if rf, ok := ret.Get(0).(func() map[string]metricscollection.Metrics); ok {
+	var r0 map[string]metricscollectionentity.Metrics
+	if rf, ok := ret.Get(0).(func() map[string]metricscollectionentity.Metrics); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]metricscollection.Metrics)
+			r0 = ret.Get(0).(map[string]metricscollectionentity.Metrics)
 		}
 	}
 
 	return r0
 }
 
+// Ping provides a mock function with given fields:
+func (_m *Repository) Ping() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SaveMetric provides a mock function with given fields: value
-func (_m *Repository) SaveMetric(value metricscollection.Metrics) {
+func (_m *Repository) SaveMetric(value metricscollectionentity.Metrics) {
 	_m.Called(value)
 }
 

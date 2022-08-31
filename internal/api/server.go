@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/metrichandler"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/metrichandler"
 	"github.com/go-chi/chi"
 )
 
@@ -25,7 +25,7 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func NewServer(host, key string, metricsUC metricscollection.Usecase) *server {
+func NewServer(host, key string, metricsUC metricscollection.MetricsCollection) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)

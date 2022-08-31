@@ -6,18 +6,18 @@ import (
 	"os"
 	"time"
 
+	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
-	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/serverconfig"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 )
 
 func main() {
 	ctx, closeCtx := context.WithTimeout(context.Background(), 10*time.Second)
 	defer closeCtx()
 
-	config := serverconfig.NewConfig()
+	config := enviroment.NewServerConfig()
 
-	metricsUC, err := metricscollection.NewUsecase(ctx, metricscollection.Config{
+	metricsUC, err := metricscollection.NewMetricsCollection(ctx, metricscollection.Config{
 		StorePath:     config.StorePath,
 		StoreInterval: config.StoreInterval,
 		Restore:       config.Restore,

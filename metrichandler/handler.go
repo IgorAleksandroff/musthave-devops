@@ -1,16 +1,16 @@
 package metrichandler
 
 import (
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 )
 
 type handler struct {
-	metricsUC metricscollection.Usecase
+	metricsUC metricscollection.MetricsCollection
 	hashKey   string
 }
 
 func New(
-	metricsUC metricscollection.Usecase,
+	metricsUC metricscollection.MetricsCollection,
 	key string,
 ) *handler {
 	return &handler{

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
-	metricscolllectionrepo2 "github.com/IgorAleksandroff/musthave-devops/internal/metricscolllectionrepo"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscolllectionrepo"
 )
 
 //go:generate mockery --name MetricsCollection
@@ -23,7 +23,7 @@ type MetricsCollection interface {
 
 type (
 	metricsCollection struct {
-		repository metricscolllectionrepo2.Repository
+		repository metricscolllectionrepo.Repository
 	}
 
 	Config struct {
@@ -35,18 +35,19 @@ type (
 )
 
 func NewMetricsCollection(ctx context.Context, cfg Config) (*metricsCollection, error) {
-	repository := metricscolllectionrepo2.NewMemoRepository(ctx, metricscolllectionrepo2.MemoConfig{
+	var repository metricscolllectionrepo.Repository
+	repository = metricscolllectionrepo.NewMemoRepository(ctx, metricscolllectionrepo.MemoConfig{
 		StorePath:     cfg.StorePath,
 		StoreInterval: cfg.StoreInterval,
 		Restore:       cfg.Restore,
 	})
 
+	var err error
 	if cfg.AddressDB != "" {
-		repository, err := metricscolllectionrepo2.NewPGRepository(ctx, cfg.AddressDB)
+		repository, err = metricscolllectionrepo.NewPGRepository(ctx, cfg.AddressDB)
 		if err != nil {
 			return nil, err
 		}
-		defer repository.Close()
 	} else {
 		repository.MemSync()
 	}

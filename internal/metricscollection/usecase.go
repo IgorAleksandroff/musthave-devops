@@ -36,11 +36,6 @@ type (
 
 func NewMetricsCollection(ctx context.Context, cfg Config) (*metricsCollection, error) {
 	var repository metricscolllectionrepo.Repository
-	repository = metricscolllectionrepo.NewMemoRepository(ctx, metricscolllectionrepo.MemoConfig{
-		StorePath:     cfg.StorePath,
-		StoreInterval: cfg.StoreInterval,
-		Restore:       cfg.Restore,
-	})
 
 	var err error
 	if cfg.AddressDB != "" {
@@ -49,7 +44,11 @@ func NewMetricsCollection(ctx context.Context, cfg Config) (*metricsCollection, 
 			return nil, err
 		}
 	} else {
-		repository.MemSync()
+		repository = metricscolllectionrepo.NewMemoRepository(ctx, metricscolllectionrepo.MemoConfig{
+			StorePath:     cfg.StorePath,
+			StoreInterval: cfg.StoreInterval,
+			Restore:       cfg.Restore,
+		})
 	}
 
 	return &metricsCollection{repository: repository}, nil

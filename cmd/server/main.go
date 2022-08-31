@@ -28,6 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer metricsUC.Close()
+	metricsUC.MemSync()
 
 	server := api.NewServer(config.Host, config.HashKey, metricsUC)
 

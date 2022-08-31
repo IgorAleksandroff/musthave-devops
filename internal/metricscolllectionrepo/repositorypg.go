@@ -111,3 +111,6 @@ func (r *PGRep) GetMetrics() map[string]metricscollectionentity.Metrics {
 func (r *PGRep) Close() {
 	r.db.Close()
 }
+func (r *PGRep) MemSync() {
+	r.db.Close()
+}

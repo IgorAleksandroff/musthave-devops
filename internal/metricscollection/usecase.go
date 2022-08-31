@@ -111,3 +111,7 @@ func (u metricsCollection) Ping() error {
 func (u metricsCollection) Close() {
 	u.repository.Close()
 }
+
+func (u metricsCollection) MemSync() {
+	u.repository.MemSync()
+}

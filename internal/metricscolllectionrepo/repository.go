@@ -12,4 +12,5 @@ type Repository interface {
 	GetMetrics() map[string]metricscollectionentity.Metrics
 	Ping() error
 	Close()
+	MemSync()
 }

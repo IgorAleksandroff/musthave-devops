@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	metricscollection "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	metricscollection "github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	mock "github.com/stretchr/testify/mock"
 )
 

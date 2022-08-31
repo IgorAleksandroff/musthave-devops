@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/serverconfig"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	"github.com/go-chi/chi"
 )
 
@@ -19,13 +19,13 @@ func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "TYPE")
 	metricName := chi.URLParam(r, "NAME")
 
-	metric := metricscollection.Metrics{
+	metric := entity.Metrics{
 		ID:    metricName,
 		MType: metricType,
 	}
 
 	switch metricType {
-	case metricscollection.CounterTypeMetric:
+	case entity.CounterTypeMetric:
 		counterValue, err := strconv.ParseInt(chi.URLParam(r, "VALUE"), 10, 64)
 		if err != nil {
 			http.Error(w, "can't parse a int64. internal error", http.StatusBadRequest)
@@ -35,7 +35,7 @@ func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {
 		metric.Delta = &counterValue
 		h.metricsUC.SaveCounterMetric(metric)
 
-	case metricscollection.GaugeTypeMetric:
+	case entity.GaugeTypeMetric:
 		gaugeValue, err := strconv.ParseFloat(chi.URLParam(r, "VALUE"), 64)
 		if err != nil {
 			http.Error(w, "can't parse a float64. internal error", http.StatusBadRequest)
@@ -64,9 +64,9 @@ func (h *handler) HandleMetricGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch metricType {
-	case metricscollection.CounterTypeMetric:
+	case entity.CounterTypeMetric:
 		value = fmt.Sprintf("%v", *metric.Delta)
-	case metricscollection.GaugeTypeMetric:
+	case entity.GaugeTypeMetric:
 		value = fmt.Sprintf("%v", *metric.Value)
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
@@ -91,7 +91,7 @@ func (h *handler) HandleMetricsGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
-	metric := metricscollection.Metrics{}
+	metric := entity.Metrics{}
 	if r.Body == nil {
 		http.Error(w, "empty body", http.StatusBadRequest)
 		return
@@ -110,9 +110,9 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	verificationMetric := metricscollection.Metrics{}
+	verificationMetric := entity.Metrics{}
 	switch metric.MType {
-	case metricscollection.CounterTypeMetric:
+	case entity.CounterTypeMetric:
 
 		if metric.Delta == nil {
 			http.Error(w, "empty delta for type counter. internal error", http.StatusBadRequest)
@@ -126,7 +126,7 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.metricsUC.SaveCounterMetric(metric)
-	case metricscollection.GaugeTypeMetric:
+	case entity.GaugeTypeMetric:
 		if metric.Value == nil {
 			http.Error(w, "empty value for type gauge. internal error", http.StatusBadRequest)
 			return
@@ -150,7 +150,7 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	metric := metricscollection.Metrics{}
+	metric := entity.Metrics{}
 	if r.Body == nil {
 		http.Error(w, "empty body", http.StatusBadRequest)
 		return
@@ -171,9 +171,9 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch metric.MType {
-	case metricscollection.CounterTypeMetric:
+	case entity.CounterTypeMetric:
 		m.CalcHash(fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta), h.hashKey)
-	case metricscollection.GaugeTypeMetric:
+	case entity.GaugeTypeMetric:
 		m.CalcHash(fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value), h.hashKey)
 	default:
 		http.Error(w, "unknown handler", http.StatusNotImplemented)
@@ -196,7 +196,7 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) HandleDBPing(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleDBPing")
-	if err := h.pingDB.Ping(); err != nil {
+	if err := h.metricsUC.Ping(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -205,7 +205,7 @@ func (h *handler) HandleDBPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleJSONPostBatch(w http.ResponseWriter, r *http.Request) {
-	metrics := make([]metricscollection.Metrics, 0)
+	metrics := make([]entity.Metrics, 0)
 	if r.Body == nil {
 		http.Error(w, "empty body", http.StatusBadRequest)
 		return

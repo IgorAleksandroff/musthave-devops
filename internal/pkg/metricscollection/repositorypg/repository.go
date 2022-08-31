@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/entity"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -24,10 +24,6 @@ const (
 	queryGet        = `SELECT id, m_type, delta, value, hash FROM metrics WHERE id = $1`
 	queryGetMetrics = `SELECT id, m_type, delta, value, hash FROM metrics`
 )
-
-type Pinger interface {
-	Ping() error
-}
 
 type rep struct {
 	ctx context.Context
@@ -49,10 +45,6 @@ func NewRepository(ctx context.Context, addressDB string) (*rep, error) {
 	return &repositoryPG, nil
 }
 
-func NewPinger(ctx context.Context) *rep {
-	return &rep{ctx: ctx, db: &pgxpool.Pool{}}
-}
-
 func (r *rep) Ping() error {
 	if r.db == nil {
 		return errors.New("DB isn't configured")
@@ -68,7 +60,7 @@ func (r *rep) Init() error {
 	return nil
 }
 
-func (r *rep) SaveMetric(value metricscollection.Metrics) {
+func (r *rep) SaveMetric(value entity.Metrics) {
 	_, err := r.db.Exec(r.ctx, querySave,
 		value.ID,
 		value.MType,
@@ -81,8 +73,8 @@ func (r *rep) SaveMetric(value metricscollection.Metrics) {
 	}
 }
 
-func (r *rep) GetMetric(name string) (*metricscollection.Metrics, error) {
-	var m metricscollection.Metrics
+func (r *rep) GetMetric(name string) (*entity.Metrics, error) {
+	var m entity.Metrics
 
 	row := r.db.QueryRow(r.ctx, queryGet, name)
 	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
@@ -93,15 +85,15 @@ func (r *rep) GetMetric(name string) (*metricscollection.Metrics, error) {
 	return &m, nil
 }
 
-func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
-	result := make(map[string]metricscollection.Metrics)
+func (r *rep) GetMetrics() map[string]entity.Metrics {
+	result := make(map[string]entity.Metrics)
 	rows, err := r.db.Query(r.ctx, queryGetMetrics)
 	if err != nil {
 		log.Printf("can not get all metrics: %v\n", err)
 		return result
 	}
 	for rows.Next() {
-		var m metricscollection.Metrics
+		var m entity.Metrics
 		if err = rows.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
 			log.Printf("can not scan a metric: %v\n", err)
 			continue

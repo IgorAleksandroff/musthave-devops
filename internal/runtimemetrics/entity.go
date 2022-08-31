@@ -1,17 +1,31 @@
-package metricscollection
+package runtimemetrics
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/clientconfig"
+	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 )
 
-const GaugeTypeMetric = "gauge"
-const CounterTypeMetric = "counter"
+type Gauge float64
+type Counter int64
+
+type Getter interface {
+	GetType() string
+}
+
+type Metric struct {
+	Value Getter
+}
+
+func (Gauge) GetType() string {
+	return "gauge"
+}
+
+func (Counter) GetType() string {
+	return "counter"
+}
 
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
@@ -21,21 +35,8 @@ type Metrics struct {
 	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
-func (m *Metrics) Copy() Metrics {
-	mOut := *m
-	if m.Delta != nil {
-		p := *m.Delta
-		mOut.Delta = &p
-	}
-	if m.Value != nil {
-		p := *m.Value
-		mOut.Value = &p
-	}
-	return mOut
-}
-
 func (m *Metrics) CalcHash(value, key string) {
-	if key == clientconfig.DefaultEnvHashKey {
+	if key == enviroment.ClientDefaultEnvHashKey {
 		m.Hash = ""
 		return
 	}
@@ -45,20 +46,4 @@ func (m *Metrics) CalcHash(value, key string) {
 	dst := h.Sum(nil)
 
 	m.Hash = fmt.Sprintf("%x", dst)
-}
-
-func DownloadMetrics(path string) (map[string]Metrics, error) {
-	metricDB := make(map[string]Metrics)
-	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return metricDB, err
-	}
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	if err = decoder.Decode(&metricDB); err != nil {
-		return metricDB, err
-	}
-
-	return metricDB, nil
 }

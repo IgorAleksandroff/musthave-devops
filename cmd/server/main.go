@@ -6,42 +6,31 @@ import (
 	"os"
 	"time"
 
+	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
-	"github.com/IgorAleksandroff/musthave-devops/internal/enviroment/serverconfig"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorymemo"
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection/repositorypg"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 )
 
 func main() {
 	ctx, closeCtx := context.WithTimeout(context.Background(), 10*time.Second)
 	defer closeCtx()
 
-	config := serverconfig.NewConfig()
+	config := enviroment.NewServerConfig()
 
-	repositoryMemo := repositorymemo.NewRepository(ctx, repositorymemo.Config{
+	metricsUC, err := metricscollection.NewMetricsCollection(ctx, metricscollection.Config{
 		StorePath:     config.StorePath,
 		StoreInterval: config.StoreInterval,
 		Restore:       config.Restore,
+		AddressDB:     config.AddressDB,
 	})
-	metricsUC := metricscollection.NewUsecase(repositoryMemo)
-
-	connectionTester := repositorypg.NewPinger(ctx)
-	if config.AddressDB != "" {
-		repositoryPG, err := repositorypg.NewRepository(ctx, config.AddressDB)
-		if err != nil {
-			log.Fatalf(err.Error())
-			os.Exit(1)
-		}
-		defer repositoryPG.Close()
-
-		connectionTester = repositoryPG
-		metricsUC = metricscollection.NewUsecase(repositoryPG)
-	} else {
-		repositoryMemo.MemSync()
+	if err != nil {
+		log.Fatalf(err.Error())
+		os.Exit(1)
 	}
+	defer metricsUC.Close()
+	metricsUC.MemSync()
 
-	server := api.NewServer(config.Host, config.HashKey, metricsUC, connectionTester)
+	server := api.NewServer(config.Host, config.HashKey, metricsUC)
 
 	log.Fatal(server.Run())
 }

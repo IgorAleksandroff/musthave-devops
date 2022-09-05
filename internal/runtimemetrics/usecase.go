@@ -6,34 +6,36 @@ import (
 	"runtime"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
-//go:generate mockery --name Usecase
+//go:generate mockery --name RuntimeMetrics
 
-type Usecase interface {
+type RuntimeMetrics interface {
 	UpdateMetrics()
 	SendMetrics()
 	SendMetricsBatch()
 }
 
-type usecase struct {
+type runtimeMetrics struct {
 	repository         Repository
 	devopsServerClient devopsserver.Client
 }
 
-func NewUsecase(
+func NewRuntimeMetrics(
 	r Repository,
 	client devopsserver.Client,
-) *usecase {
+) *runtimeMetrics {
 	r.SaveMetric("PollCount", Counter(0))
 
-	return &usecase{
+	return &runtimeMetrics{
 		repository:         r,
 		devopsServerClient: client,
 	}
 }
 
-func (u usecase) UpdateMetrics() {
+func (u runtimeMetrics) UpdateMetrics() {
 	pollCount, err := u.repository.GetMetric("PollCount")
 	if err != nil {
 		log.Println(err)
@@ -80,7 +82,28 @@ func (u usecase) UpdateMetrics() {
 	u.repository.SaveMetric("TotalAlloc", Gauge(float64(memMetrics.TotalAlloc)))
 }
 
-func (u usecase) SendMetrics() {
+func (u runtimeMetrics) UpdateUtilMetrics() {
+	v, err := mem.VirtualMemory()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	u.repository.SaveMetric("TotalMemory", Gauge(float64(v.Total)))
+	u.repository.SaveMetric("FreeMemory", Gauge(float64(v.Free)))
+
+	cpuUtilization, err := cpu.Percent(0, false)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	//log.Println(cpuUtilization)
+	u.repository.SaveMetric("CPUutilization1", Gauge(cpuUtilization[0]))
+
+}
+
+func (u runtimeMetrics) SendMetrics() {
 	metricsName := u.repository.GetMetricsName()
 	for _, metricName := range metricsName {
 		metric, err := u.repository.GetMetric(metricName)
@@ -95,7 +118,7 @@ func (u usecase) SendMetrics() {
 		}
 	}
 }
-func (u usecase) SendMetricsBatch() {
+func (u runtimeMetrics) SendMetricsBatch() {
 	metricsName := u.repository.GetMetrics()
 	endpoint := "/updates/"
 	if _, err := u.devopsServerClient.DoPost(endpoint, metricsName); err != nil {

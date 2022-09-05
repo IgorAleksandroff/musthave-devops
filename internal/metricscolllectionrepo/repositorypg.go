@@ -1,11 +1,12 @@
-package repositorypg
+package metricscolllectionrepo
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/pkg/metricscollection"
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -24,31 +25,34 @@ const (
 	queryGetMetrics = `SELECT id, m_type, delta, value, hash FROM metrics`
 )
 
-type Pinger interface {
-	Ping() error
-}
-
-type rep struct {
+type PGRep struct {
 	ctx context.Context
 	db  *pgxpool.Pool
 }
 
-func NewRepository(ctx context.Context, db *pgxpool.Pool) *rep {
-	return &rep{ctx: ctx, db: db}
+func NewPGRepository(ctx context.Context, addressDB string) (*PGRep, error) {
+	conn, err := pgxpool.Connect(ctx, addressDB)
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to database: %v", err)
+	}
+	log.Printf("connect to database: %v", conn.Config())
+
+	repositoryPG := PGRep{ctx: ctx, db: conn}
+	if err = repositoryPG.Init(); err != nil {
+		return nil, fmt.Errorf("init database error: %v", err)
+	}
+
+	return &repositoryPG, nil
 }
 
-func NewPinger(ctx context.Context, db *pgxpool.Pool) *rep {
-	return &rep{ctx: ctx, db: db}
-}
-
-func (r *rep) Ping() error {
+func (r *PGRep) Ping() error {
 	if r.db == nil {
 		return errors.New("DB isn't configured")
 	}
 	return r.db.Ping(r.ctx)
 }
 
-func (r *rep) Init() error {
+func (r *PGRep) Init() error {
 	_, err := r.db.Exec(r.ctx, queryCreateTable)
 	if err != nil {
 		return err
@@ -56,7 +60,7 @@ func (r *rep) Init() error {
 	return nil
 }
 
-func (r *rep) SaveMetric(value metricscollection.Metrics) {
+func (r *PGRep) SaveMetric(value metricscollectionentity.Metrics) {
 	_, err := r.db.Exec(r.ctx, querySave,
 		value.ID,
 		value.MType,
@@ -69,27 +73,27 @@ func (r *rep) SaveMetric(value metricscollection.Metrics) {
 	}
 }
 
-func (r *rep) GetMetric(name string) (*metricscollection.Metrics, error) {
-	var m metricscollection.Metrics
+func (r *PGRep) GetMetric(name string) (*metricscollectionentity.Metrics, error) {
+	var m metricscollectionentity.Metrics
 
 	row := r.db.QueryRow(r.ctx, queryGet, name)
 	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
-		log.Printf("%v: can not found a metric: %s\n", err, name)
+		log.Printf("%v: can not found a metric in DB: %s\n", err, name)
 		return nil, err
 	}
 
 	return &m, nil
 }
 
-func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
-	result := make(map[string]metricscollection.Metrics)
+func (r *PGRep) GetMetrics() map[string]metricscollectionentity.Metrics {
+	result := make(map[string]metricscollectionentity.Metrics)
 	rows, err := r.db.Query(r.ctx, queryGetMetrics)
 	if err != nil {
 		log.Printf("can not get all metrics: %v\n", err)
 		return result
 	}
 	for rows.Next() {
-		var m metricscollection.Metrics
+		var m metricscollectionentity.Metrics
 		if err = rows.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
 			log.Printf("can not scan a metric: %v\n", err)
 			continue
@@ -103,3 +107,8 @@ func (r *rep) GetMetrics() map[string]metricscollection.Metrics {
 
 	return result
 }
+
+func (r *PGRep) Close() {
+	r.db.Close()
+}
+func (r *PGRep) MemSync() {}

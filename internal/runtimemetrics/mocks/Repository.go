@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	runtimemetrics "github.com/IgorAleksandroff/musthave-devops/internal/pkg/runtimemetrics"
+	runtimemetrics "github.com/IgorAleksandroff/musthave-devops/internal/runtimemetrics"
 	mock "github.com/stretchr/testify/mock"
 )
 

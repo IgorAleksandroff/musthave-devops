@@ -3,7 +3,7 @@ package devopsserver
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -38,7 +38,7 @@ func (c client) Do(req *http.Request) (body []byte, err error) {
 	}
 	defer r.Body.Close()
 
-	body, err = ioutil.ReadAll(r.Body)
+	body, err = io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}

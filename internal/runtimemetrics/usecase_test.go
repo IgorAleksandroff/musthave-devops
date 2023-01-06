@@ -174,3 +174,14 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkUpdateMetrics(b *testing.B) {
+	u := runtimemetrics2.NewRuntimeMetrics(
+		runtimemetrics2.NewRepository("test"),
+		&mocks2.Client{},
+	)
+
+	for i := 0; i < b.N; i++ {
+		u.UpdateMetrics()
+	}
+}

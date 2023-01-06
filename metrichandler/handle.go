@@ -10,9 +10,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi"
+
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
-	"github.com/go-chi/chi"
 )
 
 func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {

@@ -4,11 +4,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
 	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	mocks2 "github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver/mocks"
 	runtimemetrics2 "github.com/IgorAleksandroff/musthave-devops/internal/runtimemetrics"
 	"github.com/IgorAleksandroff/musthave-devops/internal/runtimemetrics/mocks"
-	"github.com/stretchr/testify/mock"
 )
 
 func Test_usecase_SendMetrics(t *testing.T) {

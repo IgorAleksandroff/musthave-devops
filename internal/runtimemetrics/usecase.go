@@ -5,9 +5,10 @@ import (
 	"math/rand"
 	"runtime"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 )
 
 //go:generate mockery --name RuntimeMetrics

@@ -30,6 +30,7 @@ func Example() {
 		req, _ := http.NewRequest(http.MethodPost, url, nil)
 		r.ServeHTTP(res, req)
 		fmt.Println(res.Result().StatusCode)
+		res.Result().Body.Close()
 	}
 
 	res := httptest.NewRecorder()
@@ -42,6 +43,7 @@ func Example() {
 	reqMetrics, _ := http.NewRequest(http.MethodGet, "/", nil)
 	r.ServeHTTP(resMetrics, reqMetrics)
 	fmt.Println(resMetrics.Header().Get("Content-Type"))
+	resMetrics.Result().Body.Close()
 
 	// Output:
 	// 200

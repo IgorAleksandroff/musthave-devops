@@ -29,22 +29,23 @@ func Example() {
 		res := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, url, nil)
 		r.ServeHTTP(res, req)
-		fmt.Println(res.Result().StatusCode)
-		res.Result().Body.Close()
+		result := res.Result()
+		fmt.Println(result.StatusCode)
+		result.Body.Close()
 	}
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/value/gauge/name01/", nil)
 	r.ServeHTTP(res, req)
-	value, _ := io.ReadAll(res.Result().Body)
-	res.Result().Body.Close()
+	result := res.Result()
+	value, _ := io.ReadAll(result.Body)
+	defer result.Body.Close()
 	fmt.Println(string(value))
 
 	resMetrics := httptest.NewRecorder()
 	reqMetrics, _ := http.NewRequest(http.MethodGet, "/", nil)
 	r.ServeHTTP(resMetrics, reqMetrics)
 	fmt.Println(resMetrics.Header().Get("Content-Type"))
-	resMetrics.Result().Body.Close()
 
 	// Output:
 	// 200

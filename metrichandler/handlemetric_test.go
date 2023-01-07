@@ -37,6 +37,7 @@ func Example() {
 	req, _ := http.NewRequest(http.MethodGet, "/value/gauge/name01/", nil)
 	r.ServeHTTP(res, req)
 	value, _ := io.ReadAll(res.Result().Body)
+	res.Result().Body.Close()
 	fmt.Println(string(value))
 
 	resMetrics := httptest.NewRecorder()

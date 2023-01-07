@@ -99,7 +99,6 @@ func (u runtimeMetrics) UpdateUtilMetrics() {
 		return
 	}
 
-	//log.Println(cpuUtilization)
 	u.repository.SaveMetric("CPUutilization1", Gauge(cpuUtilization[0]))
 
 }

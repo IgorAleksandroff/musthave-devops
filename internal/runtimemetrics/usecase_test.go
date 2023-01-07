@@ -117,6 +117,76 @@ func Test_usecase_SendMetrics(t *testing.T) {
 	}
 }
 
+func Test_usecase_SendMetricsBatch(t *testing.T) {
+	type fields struct {
+		repository         runtimemetrics2.Repository
+		devopsServerClient devopsserver.Client
+	}
+
+	metric01 := runtimemetrics2.Metrics{
+		ID:    "name01",
+		MType: "gauge",
+		Value: func() *float64 { v := 0.1; return &v }(),
+	}
+	metric02 := runtimemetrics2.Metrics{
+		ID:    "name02",
+		MType: "counter",
+		Delta: func() *int64 { v := int64(02); return &v }(),
+	}
+	testMetrics := []runtimemetrics2.Metrics{
+		metric01,
+		metric02,
+	}
+
+	tests := []struct {
+		name   string
+		fields func() fields
+	}{
+		{
+			name: "success",
+			fields: func() fields {
+				repoMock := &mocks.Repository{}
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics2.Counter(0)).Return().Once()
+				repoMock.On("GetMetrics").Return(testMetrics)
+
+				clientMock := &mocks2.Client{}
+				clientMock.On("DoPost", "/updates/", testMetrics).Return(nil, nil).Once()
+
+				return fields{
+					repository:         repoMock,
+					devopsServerClient: clientMock,
+				}
+			},
+		},
+		{
+			name: "error_post",
+			fields: func() fields {
+				repoMock := &mocks.Repository{}
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics2.Counter(0)).Return().Once()
+				repoMock.On("GetMetrics").Return(testMetrics)
+
+				clientMock := &mocks2.Client{}
+				clientMock.On("DoPost", "/updates/", testMetrics).Return(nil, errors.New("err")).Once()
+
+				return fields{
+					repository:         repoMock,
+					devopsServerClient: clientMock,
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		f := tt.fields()
+		t.Run(tt.name, func(t *testing.T) {
+			u := runtimemetrics2.NewRuntimeMetrics(
+				f.repository,
+				f.devopsServerClient,
+			)
+			u.SendMetricsBatch()
+		})
+	}
+}
+
 func Test_usecase_UpdateMetrics(t *testing.T) {
 	type fields struct {
 		repository         runtimemetrics2.Repository
@@ -172,6 +242,45 @@ func Test_usecase_UpdateMetrics(t *testing.T) {
 				clientMock,
 			)
 			u.UpdateMetrics()
+		})
+	}
+}
+
+func Test_usecase_UpdateUtilMetrics(t *testing.T) {
+	type fields struct {
+		repository         runtimemetrics2.Repository
+		devopsServerClient devopsserver.Client
+	}
+	tests := []struct {
+		name   string
+		fields func() fields
+	}{
+		{
+			name: "success",
+			fields: func() fields {
+				repoMock := &mocks.Repository{}
+				repoMock.On("SaveMetric", "PollCount", runtimemetrics2.Counter(0)).Return().Once()
+				repoMock.On("SaveMetric", "TotalMemory", mock.AnythingOfType("Gauge")).Return().Once()
+				repoMock.On("SaveMetric", "FreeMemory", mock.AnythingOfType("Gauge")).Return().Once()
+				repoMock.On("SaveMetric", "CPUutilization1", mock.AnythingOfType("Gauge")).Return().Once()
+
+				return fields{
+					repository: repoMock,
+				}
+			},
+		},
+	}
+
+	clientMock := &mocks2.Client{}
+
+	for _, tt := range tests {
+		f := tt.fields()
+		t.Run(tt.name, func(t *testing.T) {
+			u := runtimemetrics2.NewRuntimeMetrics(
+				f.repository,
+				clientMock,
+			)
+			u.UpdateUtilMetrics()
 		})
 	}
 }

@@ -1,3 +1,4 @@
+// Package runtimemetrics collects runtime metrics and sends them to server via HTTP protocol.
 package runtimemetrics
 
 import (
@@ -36,6 +37,7 @@ func NewRuntimeMetrics(
 	}
 }
 
+// UpdateMetrics collects Memory statistics.
 func (u runtimeMetrics) UpdateMetrics() {
 	pollCount, err := u.repository.GetMetric("PollCount")
 	if err != nil {
@@ -83,6 +85,7 @@ func (u runtimeMetrics) UpdateMetrics() {
 	u.repository.SaveMetric("TotalAlloc", Gauge(float64(memMetrics.TotalAlloc)))
 }
 
+// UpdateUtilMetrics collects VirtualMemory and CPU statistics.
 func (u runtimeMetrics) UpdateUtilMetrics() {
 	v, err := mem.VirtualMemory()
 	if err != nil {
@@ -103,6 +106,7 @@ func (u runtimeMetrics) UpdateUtilMetrics() {
 
 }
 
+// SendMetrics sends each collected metric to server via HTTP.
 func (u runtimeMetrics) SendMetrics() {
 	metricsName := u.repository.GetMetricsName()
 	for _, metricName := range metricsName {
@@ -118,6 +122,8 @@ func (u runtimeMetrics) SendMetrics() {
 		}
 	}
 }
+
+// SendMetricsBatch sends batch collected metrics to server via HTTP.
 func (u runtimeMetrics) SendMetricsBatch() {
 	metricsName := u.repository.GetMetrics()
 	endpoint := "/updates/"

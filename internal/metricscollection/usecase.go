@@ -1,3 +1,4 @@
+// Package metricscollection saves metrics and provides read access to them.
 package metricscollection
 
 import (
@@ -54,6 +55,7 @@ func NewMetricsCollection(ctx context.Context, cfg Config) (*metricsCollection, 
 	return &metricsCollection{repository: repository}, nil
 }
 
+// SaveMetric saves any metrics in repository
 func (u metricsCollection) SaveMetric(value metricscollectionentity.Metrics) {
 	u.repository.SaveMetric(value)
 }
@@ -67,10 +69,12 @@ func (u metricsCollection) SaveCounterMetric(value metricscollectionentity.Metri
 	u.repository.SaveMetric(value)
 }
 
+// GetMetric provides read access to metric by name.
 func (u metricsCollection) GetMetric(name string) (*metricscollectionentity.Metrics, error) {
 	return u.repository.GetMetric(name)
 }
 
+// GetMetricsValue provides read access to metrics value by names.
 func (u metricsCollection) GetMetricsValue() map[string]string {
 	metrics := u.repository.GetMetrics()
 
@@ -93,6 +97,7 @@ func (u metricsCollection) GetMetricsValue() map[string]string {
 	return result
 }
 
+// SaveMetrics saves batch metrics in repository
 func (u metricsCollection) SaveMetrics(metrics []metricscollectionentity.Metrics) {
 	for _, metric := range metrics {
 		if m, err := u.repository.GetMetric(metric.ID); err == nil && m.Delta != nil && metric.Delta != nil {
@@ -104,14 +109,17 @@ func (u metricsCollection) SaveMetrics(metrics []metricscollectionentity.Metrics
 	}
 }
 
+// Ping checks connection to repository, return nil if ok.
 func (u metricsCollection) Ping() error {
 	return u.repository.Ping()
 }
 
+// Close connection to repository.
 func (u metricsCollection) Close() {
 	u.repository.Close()
 }
 
+// MemSync periodical copies metrics from inmemory to file.
 func (u metricsCollection) MemSync() {
 	u.repository.MemSync()
 }

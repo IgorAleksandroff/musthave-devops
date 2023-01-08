@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 	"github.com/go-chi/chi"
@@ -42,6 +43,8 @@ func Example() {
 	defer result.Body.Close()
 	fmt.Println(string(value))
 
+	// меняем текущую директорию, чтобы был доступен html шаблон
+	os.Chdir("../")
 	resMetrics := httptest.NewRecorder()
 	reqMetrics, _ := http.NewRequest(http.MethodGet, "/", nil)
 	r.ServeHTTP(resMetrics, reqMetrics)

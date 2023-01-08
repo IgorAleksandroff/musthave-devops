@@ -80,7 +80,7 @@ func (h *handler) HandleMetricGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleMetricsGet(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("../templates/Metrics.html")
+	tmpl, err := template.ParseFiles("templates/Metrics.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

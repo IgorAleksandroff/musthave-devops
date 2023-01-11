@@ -55,7 +55,7 @@ func NewMetricsCollection(ctx context.Context, cfg Config) (*metricsCollection, 
 	return &metricsCollection{repository: repository}, nil
 }
 
-// SaveMetric saves any metrics in repository
+// SaveMetric saves any metrics in repository.
 func (u metricsCollection) SaveMetric(value metricscollectionentity.Metrics) {
 	u.repository.SaveMetric(value)
 }

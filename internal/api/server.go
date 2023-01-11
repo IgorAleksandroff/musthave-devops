@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi"
+
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/metrichandler"
-	"github.com/go-chi/chi"
 )
 
 type Server interface {

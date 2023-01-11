@@ -1,3 +1,8 @@
+// Package metrichandler stores http handlers.
+// @title Monitoring API
+// @description Service for saving metrics and providing read access to them
+// @Version 1.0
+
 package metrichandler
 
 import (
@@ -10,11 +15,24 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi"
+
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
-	"github.com/go-chi/chi"
 )
 
+// HandleMetricPost Saves any metrics in repository.
+// @Tags Metrics
+// @Summary Save metric
+// @Description Saves any metrics
+// @Produce text/plain
+// @Param  TYPE path string true "metric type" Enums(counter,gauge)
+// @Param  NAME path string true "metric id"
+// @Param  VALUE path string true "metric value"
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 400 {string} string "Not Implemented"
+// @Router /update/{TYPE}/{NAME}/{VALUE} [post]
 func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "TYPE")
 	metricName := chi.URLParam(r, "NAME")
@@ -51,6 +69,17 @@ func (h *handler) HandleMetricPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// HandleMetricGet provides read access to metric value.
+// @Tags Metrics
+// @Summary Get metric
+// @Description Return metric value
+// @Produce text/plain
+// @Param  TYPE path string true "metric type" Enums(counter,gauge)
+// @Param  NAME path string true "metric id"
+// @Success 200 {string} string "OK"
+// @Failure 404 {string} string "Not Found"
+// @Failure 400 {string} string "Not Implemented"
+// @Router /value/{TYPE}/{NAME} [get]
 func (h *handler) HandleMetricGet(w http.ResponseWriter, r *http.Request) {
 	var value string
 	var err error
@@ -78,6 +107,14 @@ func (h *handler) HandleMetricGet(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(value))
 }
 
+// HandleMetricsGet provides read access to all metrics value.
+// @Tags Metrics
+// @Summary Get metrics
+// @Description Return all metrics value
+// @Produce text/html
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Internal Server Error"
+// @Router / [get]
 func (h *handler) HandleMetricsGet(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("templates/Metrics.html")
 	if err != nil {
@@ -90,6 +127,16 @@ func (h *handler) HandleMetricsGet(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, metricsValue)
 }
 
+// HandleJSONPost Saves metric in repository.
+// @Tags Metrics
+// @Summary Saves metric
+// @Description Saves metric in repository
+// @Accept  application/json
+// @Param metric body metricscollectionentity.Metrics true "Metric to save"
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 400 {string} string "Not Implemented"
+// @Router /update/ [post]
 func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 	metric := metricscollectionentity.Metrics{}
 	if r.Body == nil {
@@ -143,6 +190,18 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// HandleJSONGet provides read access to metric.
+// @Tags Metrics
+// @Summary Get metric
+// @Description Return metric value
+// @Accept  application/json
+// @Produce  application/json
+// @Param metrics body metricscollectionentity.Metrics true "Get Metric"
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Failure 400 {string} string "Not Implemented"
+// @Router /value/ [post]
 func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -190,6 +249,13 @@ func (h *handler) HandleJSONGet(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf.Bytes())
 }
 
+// HandleDBPing Ping repository.
+// @Tags Info
+// @Summary Ping repository
+// @Description Checking connection to repository
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Internal Server Error"
+// @Router /ping [get]
 func (h *handler) HandleDBPing(w http.ResponseWriter, r *http.Request) {
 	log.Println("HandleDBPing")
 	if err := h.metricsUC.Ping(); err != nil {
@@ -200,6 +266,16 @@ func (h *handler) HandleDBPing(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// HandleJSONPostBatch Saves batch metrics in repository.
+// @Tags Metrics
+// @Summary Saves metrics
+// @Description Saves batch metrics in repository
+// @Accept  application/json
+// @Param metrics body metricscollectionentity.Metrics true "List of metrics to save"
+// @Success 200 {string} string "OK"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 400 {string} string "Not Implemented"
+// @Router /updates/ [post]
 func (h *handler) HandleJSONPostBatch(w http.ResponseWriter, r *http.Request) {
 	metrics := make([]metricscollectionentity.Metrics, 0)
 	if r.Body == nil {

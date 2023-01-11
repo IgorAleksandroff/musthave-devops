@@ -1,0 +1,207 @@
+definitions:
+  metricscollectionentity.Metrics:
+    properties:
+      delta:
+        description: значение метрики в случае передачи counter
+        type: integer
+      hash:
+        description: значение хеш-функции
+        type: string
+      id:
+        description: имя метрики
+        type: string
+      type:
+        description: параметр, принимающий значение gauge или counter
+        type: string
+      value:
+        description: значение метрики в случае передачи gauge
+        type: number
+    type: object
+info:
+  contact: {}
+  description: Service for saving metrics and providing read access to them
+  title: Monitoring API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Return all metrics value
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get metrics
+      tags:
+      - Metrics
+  /ping:
+    get:
+      description: Checking connection to repository
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Ping repository
+      tags:
+      - Info
+  /update/:
+    post:
+      consumes:
+      - application/json
+      description: Saves metric in repository
+      parameters:
+      - description: Metric to save
+        in: body
+        name: metric
+        required: true
+        schema:
+          $ref: '#/definitions/metricscollectionentity.Metrics'
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Not Implemented
+          schema:
+            type: string
+      summary: Saves metric
+      tags:
+      - Metrics
+  /update/{TYPE}/{NAME}/{VALUE}:
+    post:
+      description: Saves any metrics
+      parameters:
+      - description: metric type
+        enum:
+        - counter
+        - gauge
+        in: path
+        name: TYPE
+        required: true
+        type: string
+      - description: metric id
+        in: path
+        name: NAME
+        required: true
+        type: string
+      - description: metric value
+        in: path
+        name: VALUE
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Not Implemented
+          schema:
+            type: string
+      summary: Save metric
+      tags:
+      - Metrics
+  /updates/:
+    post:
+      consumes:
+      - application/json
+      description: Saves batch metrics in repository
+      parameters:
+      - description: List of metrics to save
+        in: body
+        name: metrics
+        required: true
+        schema:
+          $ref: '#/definitions/metricscollectionentity.Metrics'
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Not Implemented
+          schema:
+            type: string
+      summary: Saves metrics
+      tags:
+      - Metrics
+  /value/:
+    post:
+      consumes:
+      - application/json
+      description: Return metric value
+      parameters:
+      - description: Get Metric
+        in: body
+        name: metrics
+        required: true
+        schema:
+          $ref: '#/definitions/metricscollectionentity.Metrics'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Not Implemented
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get metric
+      tags:
+      - Metrics
+  /value/{TYPE}/{NAME}:
+    get:
+      description: Return metric value
+      parameters:
+      - description: metric type
+        enum:
+        - counter
+        - gauge
+        in: path
+        name: TYPE
+        required: true
+        type: string
+      - description: metric id
+        in: path
+        name: NAME
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Not Implemented
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get metric
+      tags:
+      - Metrics
+swagger: "2.0"

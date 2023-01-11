@@ -3,7 +3,6 @@ package runtimemetrics
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"fmt"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 )
@@ -45,5 +44,5 @@ func (m *Metrics) CalcHash(value, key string) {
 	h.Write([]byte(value))
 	dst := h.Sum(nil)
 
-	m.Hash = fmt.Sprintf("%x", dst)
+	m.Hash = string(dst)
 }

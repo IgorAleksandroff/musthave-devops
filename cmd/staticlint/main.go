@@ -12,7 +12,6 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"honnef.co/go/tools/simple"
 	"honnef.co/go/tools/staticcheck"
-	"honnef.co/go/tools/stylecheck"
 )
 
 func main() {
@@ -24,10 +23,6 @@ func main() {
 		shift.Analyzer,
 		structtag.Analyzer,
 		unusedresult.Analyzer,
-	}
-
-	for _, v := range stylecheck.Analyzers {
-		mychecks = append(mychecks, v.Analyzer)
 	}
 
 	for _, v := range simple.Analyzers {

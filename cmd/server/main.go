@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
@@ -25,7 +24,6 @@ func main() {
 	})
 	if err != nil {
 		log.Fatalf(err.Error())
-		os.Exit(1)
 	}
 	defer metricsUC.Close()
 	metricsUC.MemSync()

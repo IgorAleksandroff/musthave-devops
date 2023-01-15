@@ -1,3 +1,4 @@
+// Package runtimemetrics collects runtime metrics and sends them to server via HTTP protocol.
 package runtimemetrics
 
 import (
@@ -5,9 +6,10 @@ import (
 	"math/rand"
 	"runtime"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/IgorAleksandroff/musthave-devops/internal/api/services/devopsserver"
 )
 
 //go:generate mockery --name RuntimeMetrics
@@ -35,6 +37,7 @@ func NewRuntimeMetrics(
 	}
 }
 
+// UpdateMetrics collects Memory statistics.
 func (u runtimeMetrics) UpdateMetrics() {
 	pollCount, err := u.repository.GetMetric("PollCount")
 	if err != nil {
@@ -82,6 +85,7 @@ func (u runtimeMetrics) UpdateMetrics() {
 	u.repository.SaveMetric("TotalAlloc", Gauge(float64(memMetrics.TotalAlloc)))
 }
 
+// UpdateUtilMetrics collects VirtualMemory and CPU statistics.
 func (u runtimeMetrics) UpdateUtilMetrics() {
 	v, err := mem.VirtualMemory()
 	if err != nil {
@@ -98,11 +102,11 @@ func (u runtimeMetrics) UpdateUtilMetrics() {
 		return
 	}
 
-	//log.Println(cpuUtilization)
 	u.repository.SaveMetric("CPUutilization1", Gauge(cpuUtilization[0]))
 
 }
 
+// SendMetrics sends each collected metric to server via HTTP.
 func (u runtimeMetrics) SendMetrics() {
 	metricsName := u.repository.GetMetricsName()
 	for _, metricName := range metricsName {
@@ -118,6 +122,8 @@ func (u runtimeMetrics) SendMetrics() {
 		}
 	}
 }
+
+// SendMetricsBatch sends batch collected metrics to server via HTTP.
 func (u runtimeMetrics) SendMetricsBatch() {
 	metricsName := u.repository.GetMetrics()
 	endpoint := "/updates/"

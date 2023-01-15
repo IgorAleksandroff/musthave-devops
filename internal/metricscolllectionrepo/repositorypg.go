@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
 	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollectionentity"
 )
 
 const (

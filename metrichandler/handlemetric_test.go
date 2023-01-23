@@ -61,7 +61,7 @@ func Example() {
 	// text/html
 }
 
-func ExampleJSON() {
+func Example_second() {
 	metricsUC, _ := metricscollection.NewMetricsCollection(context.Background(), metricscollection.Config{})
 	h := New(metricsUC, "hashKey")
 

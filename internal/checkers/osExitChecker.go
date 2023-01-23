@@ -1,3 +1,4 @@
+// Package checkers implements a custom static linter
 package checkers
 
 import (
@@ -25,7 +26,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 								if strings.Contains("os.Exit", name) {
 									pass.Reportf(selectorExpr.Pos(), "function main should not have os exit")
 								}
-
 							}
 						}
 						return true

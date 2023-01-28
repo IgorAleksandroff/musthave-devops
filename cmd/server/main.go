@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
@@ -11,7 +11,18 @@ import (
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 )
 
+var (
+	defaultBuildValue = "N/A"
+	buildVersion      = defaultBuildValue
+	buildDate         = defaultBuildValue
+	buildCommit       = defaultBuildValue
+)
+
 func main() {
+	fmt.Println("Build version: ", buildVersion)
+	fmt.Println("Build date: ", buildDate)
+	fmt.Println("Build commit: ", buildCommit)
+
 	ctx, closeCtx := context.WithTimeout(context.Background(), 10*time.Second)
 	defer closeCtx()
 
@@ -25,7 +36,6 @@ func main() {
 	})
 	if err != nil {
 		log.Fatalf(err.Error())
-		os.Exit(1)
 	}
 	defer metricsUC.Close()
 	metricsUC.MemSync()

@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/IgorAleksandroff/musthave-devops/enviroment"
+	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/metrichandler"
 )
@@ -26,13 +28,23 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func NewServer(host, key string, metricsUC metricscollection.MetricsCollection) *server {
+func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)
 	r.Use(gzipHandle)
 
-	metricHandler := metrichandler.New(metricsUC, key)
+	if cfg.CryptoKeyPath != "" {
+		dc, err := datacrypt.New(
+			datacrypt.WithPrivateKey(cfg.CryptoKeyPath),
+			datacrypt.WithLabel("metrics"),
+		)
+		if err == nil && dc != nil {
+			r.Use(dc.GetDecryptMiddleware())
+		}
+	}
+
+	metricHandler := metrichandler.New(metricsUC, cfg.HashKey)
 
 	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
 	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
@@ -44,7 +56,7 @@ func NewServer(host, key string, metricsUC metricscollection.MetricsCollection) 
 
 	return &server{
 		router: r,
-		host:   host,
+		host:   cfg.Host,
 	}
 }
 

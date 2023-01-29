@@ -40,7 +40,7 @@ func main() {
 	defer metricsUC.Close()
 	metricsUC.MemSync()
 
-	server := api.NewServer(config.Host, config.HashKey, metricsUC)
+	server := api.NewServer(config.ServerConfig, metricsUC)
 
 	log.Fatal(server.Run())
 }

@@ -6,6 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
+	"github.com/pkg/errors"
 )
 
 //go:generate mockery --name "Client"
@@ -14,24 +17,38 @@ type (
 	client struct {
 		serverName string
 		transport  *http.Client
+		crypt      datacrypt.Cypher
 	}
 
 	Client interface {
-		Do(req *http.Request) (body []byte, err error)
 		DoGet(url string) ([]byte, error)
 		DoPost(url string, data interface{}) ([]byte, error)
 	}
 )
 
-func NewClient(serverName string) Client {
+func NewClient(serverName, cryptoKeyPathstring string) (Client, error) {
+	var dc datacrypt.Cypher
+
+	if cryptoKeyPathstring != "" {
+		var err error
+
+		dc, err = datacrypt.New(
+			datacrypt.WithPublicKey(cryptoKeyPathstring),
+			datacrypt.WithLabel("metrics"),
+		)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
 
 	return &client{
 		serverName: serverName,
 		transport:  &http.Client{},
-	}
+		crypt:      dc,
+	}, nil
 }
 
-func (c client) Do(req *http.Request) (body []byte, err error) {
+func (c client) do(req *http.Request) (body []byte, err error) {
 	r, err := c.transport.Do(req)
 	if err != nil {
 		return nil, err
@@ -52,7 +69,7 @@ func (c client) DoGet(path string) ([]byte, error) {
 		return nil, err
 	}
 
-	body, err := c.Do(req)
+	body, err := c.do(req)
 
 	return body, err
 }
@@ -65,13 +82,20 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 		return nil, err
 	}
 
+	if c.crypt != nil {
+		payload, err = c.crypt.Encrypt(payload)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
+
 	req, err := http.NewRequest(http.MethodPost, c.serverName+path, bytes.NewReader(payload))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set(`Content-Type`, `application/json`)
 
-	body, err := c.Do(req)
+	body, err := c.do(req)
 
 	return body, err
 }

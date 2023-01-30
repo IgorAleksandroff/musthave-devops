@@ -8,11 +8,17 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/pkg/errors"
 )
+
+type Cypher interface {
+	GetDecryptMiddleware() func(next http.Handler) http.Handler
+	Encrypt(data []byte) ([]byte, error)
+}
 
 type crypt struct {
 	publicKey  *rsa.PublicKey
@@ -20,7 +26,7 @@ type crypt struct {
 	label      string
 }
 
-func New(options ...func(*crypt) error) (*crypt, error) {
+func New(options ...func(*crypt) error) (Cypher, error) {
 	c := &crypt{}
 	for _, o := range options {
 		if err := o(c); err != nil {
@@ -32,7 +38,7 @@ func New(options ...func(*crypt) error) (*crypt, error) {
 
 func WithPublicKey(path string) func(*crypt) error {
 	return func(c *crypt) error {
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("failed to read file with public key - %s", path))
 		}
@@ -59,7 +65,7 @@ func WithLabel(l string) func(*crypt) error {
 
 func WithPrivateKey(path string) func(*crypt) error {
 	return func(c *crypt) error {
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("failed to read file with private key - %s", path))
 		}
@@ -79,7 +85,7 @@ func WithPrivateKey(path string) func(*crypt) error {
 func (c crypt) GetDecryptMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			body, err := ioutil.ReadAll(r.Body)
+			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -90,10 +96,15 @@ func (c crypt) GetDecryptMiddleware() func(next http.Handler) http.Handler {
 				return
 			}
 
-			r.Body = ioutil.NopCloser(bytes.NewReader(decryptedBody))
+			r.Body = io.NopCloser(bytes.NewReader(decryptedBody))
 			r.ContentLength = int64(len(decryptedBody))
 
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func (c crypt) Encrypt(data []byte) ([]byte, error) {
+	encryptedData, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, c.publicKey, data, []byte(c.label))
+	return encryptedData, errors.WithStack(err)
 }

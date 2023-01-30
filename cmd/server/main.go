@@ -35,7 +35,7 @@ func main() {
 		AddressDB:     config.AddressDB,
 	})
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err)
 	}
 	defer metricsUC.Close()
 	metricsUC.MemSync()

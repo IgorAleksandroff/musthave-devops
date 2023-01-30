@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
@@ -21,14 +22,18 @@ func main() {
 	fmt.Println("Build date: ", buildDate)
 	fmt.Println("Build commit: ", buildCommit)
 
-	config := enviroment.NewClientConfig()
+	cfg := enviroment.NewClientConfig()
 
-	client := devopsserver.NewClient(config.Host)
-	runtimeMetricsRepo := runtimemetrics.NewRepository(config.HashKey)
+	client, err := devopsserver.NewClient(cfg.Host, cfg.CryptoKeyPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	runtimeMetricsRepo := runtimemetrics.NewRepository(cfg.HashKey)
 	runtimeMetricsUC := runtimemetrics.NewRuntimeMetrics(runtimeMetricsRepo, client)
 
-	pollTicker := time.NewTicker(config.PollInterval)
-	reportTicker := time.NewTicker(config.ReportInterval)
+	pollTicker := time.NewTicker(cfg.PollInterval)
+	reportTicker := time.NewTicker(cfg.ReportInterval)
 	defer pollTicker.Stop()
 	defer reportTicker.Stop()
 

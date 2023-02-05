@@ -18,6 +18,7 @@ var (
 	buildCommit       = defaultBuildValue
 )
 
+// test-agent-build
 func main() {
 	fmt.Println("Build version: ", buildVersion)
 	fmt.Println("Build date: ", buildDate)

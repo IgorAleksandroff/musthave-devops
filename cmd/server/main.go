@@ -43,8 +43,8 @@ func main() {
 	defer metricsUC.Close()
 
 	wg := &sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		metricsUC.MemSync()
 		wg.Done()
 	}()

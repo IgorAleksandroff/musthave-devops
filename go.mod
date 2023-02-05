@@ -1,15 +1,15 @@
 module github.com/IgorAleksandroff/musthave-devops
 
-go 1.18
+go 1.17
 
 require (
 	github.com/go-chi/chi v1.5.4
 	github.com/jackc/pgx/v4 v4.17.2
-	github.com/shirou/gopsutil/v3 v3.22.12
+	github.com/shirou/gopsutil/v3 v3.23.1
 	github.com/stretchr/testify v1.8.1
-	github.com/swaggo/swag v1.8.9
+	github.com/swaggo/swag v1.8.10
 	golang.org/x/tools v0.5.0
-	honnef.co/go/tools v0.3.3
+	honnef.co/go/tools v0.4.0
 )
 
 require (
@@ -40,7 +40,7 @@ require (
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
-	golang.org/x/exp/typeparams v0.0.0-20220218215828-6cf2b201936e // indirect
+	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect

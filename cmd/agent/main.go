@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
@@ -37,13 +41,37 @@ func main() {
 	defer pollTicker.Stop()
 	defer reportTicker.Stop()
 
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	wg := &sync.WaitGroup{}
+	stopCommand := false
 	for {
 		select {
 		case <-pollTicker.C:
-			go runtimeMetricsUC.UpdateUtilMetrics()
-			go runtimeMetricsUC.UpdateMetrics()
+			wg.Add(1)
+			go func() {
+				runtimeMetricsUC.UpdateUtilMetrics()
+				runtimeMetricsUC.UpdateMetrics()
+
+				wg.Done()
+			}()
 		case <-reportTicker.C:
-			go runtimeMetricsUC.SendMetricsBatch()
+			wg.Add(1)
+			go func() {
+				runtimeMetricsUC.SendMetricsBatch()
+				wg.Done()
+			}()
+		case s := <-interrupt:
+			stopCommand = true
+			log.Printf("got signal: %s", s)
+		}
+
+		if stopCommand {
+			break
 		}
 	}
+	wg.Wait()
+
+	log.Println("app interrupted by sys signal")
 }

@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/api"
@@ -23,8 +26,8 @@ func main() {
 	fmt.Println("Build date: ", buildDate)
 	fmt.Println("Build commit: ", buildCommit)
 
-	ctx, closeCtx := context.WithTimeout(context.Background(), 10*time.Second)
-	defer closeCtx()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer stop()
 
 	config := enviroment.NewServerConfig()
 
@@ -38,9 +41,19 @@ func main() {
 		log.Fatal(err)
 	}
 	defer metricsUC.Close()
-	metricsUC.MemSync()
 
-	server := api.NewServer(config.ServerConfig, metricsUC)
+	wg := &sync.WaitGroup{}
+	go func() {
+		wg.Add(1)
+		metricsUC.MemSync()
+		wg.Done()
+	}()
 
-	log.Fatal(server.Run())
+	server := api.NewServer(ctx, config.ServerConfig, metricsUC)
+
+	server.Run()
+
+	wg.Wait()
+
+	log.Println("server graceful shutdown have been completed")
 }

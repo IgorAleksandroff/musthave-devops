@@ -2,9 +2,12 @@ package api
 
 import (
 	"compress/gzip"
+	"context"
 	"io"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 
@@ -14,13 +17,19 @@ import (
 	"github.com/IgorAleksandroff/musthave-devops/metrichandler"
 )
 
+const (
+	defaultReadTimeout     = 5 * time.Second
+	defaultWriteTimeout    = 5 * time.Second
+	defaultShutdownTimeout = 3 * time.Second
+)
+
 type Server interface {
-	Run() error
+	Run()
 }
 
 type server struct {
-	host   string
-	router *chi.Mux
+	ctx        context.Context
+	serverHTTP *http.Server
 }
 
 type gzipWriter struct {
@@ -28,7 +37,7 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
+func NewServer(ctx context.Context, cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)
@@ -55,13 +64,37 @@ func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsC
 	r.MethodFunc(http.MethodPost, "/updates/", metricHandler.HandleJSONPostBatch)
 
 	return &server{
-		router: r,
-		host:   cfg.Host,
+		ctx: ctx,
+		serverHTTP: &http.Server{
+			Handler:      r,
+			ReadTimeout:  defaultReadTimeout,
+			WriteTimeout: defaultWriteTimeout,
+			Addr:         cfg.Host,
+		},
 	}
 }
 
-func (s *server) Run() error {
-	return http.ListenAndServe(s.host, s.router)
+func (s *server) Run() {
+	notify := make(chan error, 1)
+	go func() {
+		notify <- s.serverHTTP.ListenAndServe()
+		close(notify)
+	}()
+
+	select {
+	case <-s.ctx.Done():
+		log.Println("server interrupted by", s.ctx.Err())
+	case err := <-notify:
+		log.Printf("http server stopped: %s", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
+	defer cancel()
+
+	err := s.serverHTTP.Shutdown(ctx)
+	if err != nil {
+		log.Printf("error shutdown http server: %s", err)
+	}
 }
 
 var _ Server = &server{}

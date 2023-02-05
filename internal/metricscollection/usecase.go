@@ -40,6 +40,7 @@ func NewMetricsCollection(ctx context.Context, cfg Config) (*metricsCollection, 
 
 	var err error
 	if cfg.AddressDB != "" {
+
 		repository, err = metricscolllectionrepo.NewPGRepository(ctx, cfg.AddressDB)
 		if err != nil {
 			return nil, err

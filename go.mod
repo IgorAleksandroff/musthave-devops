@@ -1,6 +1,6 @@
 module github.com/IgorAleksandroff/musthave-devops
 
-go 1.19
+go 1.17
 
 require (
 	github.com/go-chi/chi v1.5.4

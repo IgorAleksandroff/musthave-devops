@@ -18,7 +18,7 @@ var (
 	buildCommit       = defaultBuildValue
 )
 
-// test-agent-build
+// test-agent-build with vpn
 func main() {
 	fmt.Println("Build version: ", buildVersion)
 	fmt.Println("Build date: ", buildDate)

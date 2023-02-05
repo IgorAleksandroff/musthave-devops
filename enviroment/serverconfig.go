@@ -15,6 +15,7 @@ const (
 	ServerEnvHashKey          = "KEY"
 	ServerEnvDB               = "DATABASE_DSN"
 	ServerEnvPrivateCryptoKey = "CRYPTO_KEY"
+	ServerEnvPublicCfgPath    = "CONFIG"
 
 	ServerDefaultServerURL        = "localhost:8080"
 	ServerDefaultStoreInterval    = 300 * time.Second
@@ -23,6 +24,7 @@ const (
 	ServerDefaultEnvHashKey       = ""
 	ServerDefaultEnvDB            = ""
 	ServerDefaultPrivateCryptoKey = ""
+	ServerDefaultCfgPath          = ""
 )
 
 type ServerConfig struct {
@@ -31,7 +33,7 @@ type ServerConfig struct {
 	CryptoKeyPath string
 }
 
-type Config struct {
+type config struct {
 	StoreInterval time.Duration
 	StorePath     string
 	Restore       bool
@@ -39,8 +41,20 @@ type Config struct {
 	ServerConfig
 }
 
-func NewServerConfig() Config {
-	log.Println("os:", os.Args)
+func NewServerConfig() config {
+	log.Printf("os: %+v", os.Args)
+
+	cfg := config{
+		ServerConfig: ServerConfig{
+			Host:          ServerDefaultServerURL,
+			HashKey:       ServerDefaultEnvHashKey,
+			CryptoKeyPath: ServerDefaultPrivateCryptoKey,
+		},
+		StoreInterval: ServerDefaultStoreInterval,
+		StorePath:     ServerDefaultStoreFile,
+		Restore:       ServerDefaultRestore,
+		AddressDB:     ServerDefaultEnvDB,
+	}
 
 	hostFlag := flag.String("a", ServerDefaultServerURL, "адрес и порт сервера")
 	storeIntervalFlag := flag.Duration("i", ServerDefaultStoreInterval, "интервал времени в секундах, по истечении которого текущие показания сервера сбрасываются на диск")
@@ -49,24 +63,43 @@ func NewServerConfig() Config {
 	hashKeyFlag := flag.String("k", ServerDefaultEnvHashKey, "ключ подписи метрик")
 	addressDBflag := flag.String("d", ServerDefaultEnvDB, "адрес подключения к БД")
 	cryptoKeyFlag := flag.String("crypto-key", ServerDefaultPrivateCryptoKey, "путь до файла с приватным ключом")
+	cfgPathFlag := flag.String("c", ServerDefaultCfgPath, "путь до json файла конфигурации сервера")
 
 	flag.Parse()
 
-	storePathEnv := GetEnvString(ServerEnvStoreFile, *storePathFlag)
-	restoreEnv := GetEnvBool(ServerEnvRestore, *restoreFlag)
-	addressDBenv := GetEnvString(ServerEnvDB, *addressDBflag)
-
-	cfg := Config{
-		ServerConfig: ServerConfig{
-			Host:          GetEnvString(ServerEnvServerURL, *hostFlag),
-			HashKey:       GetEnvString(ServerEnvHashKey, *hashKeyFlag),
-			CryptoKeyPath: GetEnvString(ServerEnvPrivateCryptoKey, *cryptoKeyFlag),
-		},
-		StoreInterval: GetEnvDuration(ServerEnvStoreInterval, *storeIntervalFlag),
-		StorePath:     storePathEnv,
-		Restore:       restoreEnv,
-		AddressDB:     addressDBenv,
+	cfgJSONPath := GetEnvString(ServerEnvPublicCfgPath, *cfgPathFlag)
+	if cfgJSONPath != ClientDefaultCfgPath {
+		updateServerConfigByJSON(cfgJSONPath, &cfg)
 	}
+
+	// update Client config by flags
+	if hostFlag != nil && isFlagPassed("a") {
+		cfg.Host = *hostFlag
+	}
+	if restoreFlag != nil && isFlagPassed("r") {
+		cfg.Restore = *restoreFlag
+	}
+	if storeIntervalFlag != nil && isFlagPassed("i") {
+		cfg.StoreInterval = *storeIntervalFlag
+	}
+	if storePathFlag != nil && isFlagPassed("f") {
+		cfg.StorePath = *storePathFlag
+	}
+	if addressDBflag != nil && isFlagPassed("d") {
+		cfg.AddressDB = *addressDBflag
+	}
+	if cryptoKeyFlag != nil && isFlagPassed("crypto-key") {
+		cfg.CryptoKeyPath = *cryptoKeyFlag
+	}
+
+	// update Client config by env, default is flag or json parameter
+	cfg.Host = GetEnvString(ServerEnvServerURL, cfg.Host)
+	cfg.HashKey = GetEnvString(ServerEnvHashKey, *hashKeyFlag)
+	cfg.CryptoKeyPath = GetEnvString(ServerEnvPrivateCryptoKey, cfg.CryptoKeyPath)
+	cfg.StoreInterval = GetEnvDuration(ServerEnvStoreInterval, cfg.StoreInterval)
+	cfg.StorePath = GetEnvString(ServerEnvStoreFile, cfg.StorePath)
+	cfg.Restore = GetEnvBool(ServerEnvRestore, cfg.Restore)
+	cfg.AddressDB = GetEnvString(ServerEnvDB, cfg.AddressDB)
 
 	log.Printf("Parsed Server config: %+v", cfg)
 

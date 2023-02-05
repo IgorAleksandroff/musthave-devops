@@ -47,17 +47,16 @@ func NewClientConfig() clientConfig {
 	reportIntervalFlag := flag.Duration("r", ClientDefaultReportInterval, "частота отправки метрик в секундах")
 	hashKey := flag.String("k", ClientDefaultEnvHashKey, "ключ подписи метрик")
 	cryptoKey := flag.String("crypto-key", ClientDefaultEnvPublicCryptoKey, "путь до файла с публичным ключом")
-	cfgPathFlag := flag.String("c", ClientDefaultCfgPath, "адрес и порт сервера")
+	cfgPathFlag := flag.String("c", ClientDefaultCfgPath, "путь до json файла конфигурации сервера")
 
 	flag.Parse()
 
 	cfgJSONPath := GetEnvString(ClientEnvPublicCfgPath, *cfgPathFlag)
-
 	if cfgJSONPath != ClientDefaultCfgPath {
 		updateClientConfigByJSON(cfgJSONPath, &cfg)
 	}
 
-	// update Client Config by flags
+	// update only parameters of Client from json config by flags
 	if hostFlag != nil && isFlagPassed("a") {
 		cfg.Host = *hostFlag
 	}
@@ -67,18 +66,15 @@ func NewClientConfig() clientConfig {
 	if reportIntervalFlag != nil && isFlagPassed("r") {
 		cfg.ReportInterval = *reportIntervalFlag
 	}
-	if hashKey != nil && isFlagPassed("k") {
-		cfg.HashKey = *hashKey
-	}
 	if cryptoKey != nil && isFlagPassed("crypto-key") {
 		cfg.CryptoKeyPath = *cryptoKey
 	}
 
-	// update Client Config by env
+	// update Client config by env, default is flag or json parameter
 	cfg.Host = GetEnvString(ClientEnvServerURL, cfg.Host)
 	cfg.PollInterval = GetEnvDuration(ClientEnvPollInterval, cfg.PollInterval)
 	cfg.ReportInterval = GetEnvDuration(ClientEnvReportInterval, cfg.ReportInterval)
-	cfg.HashKey = GetEnvString(ClientEnvHashKey, cfg.HashKey)
+	cfg.HashKey = GetEnvString(ClientEnvHashKey, *hashKey)
 	cfg.CryptoKeyPath = GetEnvString(ClientEnvPublicCryptoKey, cfg.CryptoKeyPath)
 
 	cfg.Host = "http://" + cfg.Host

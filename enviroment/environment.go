@@ -1,6 +1,7 @@
 package enviroment
 
 import (
+	"flag"
 	"log"
 	"os"
 	"strconv"
@@ -32,4 +33,14 @@ func GetEnvBool(envName string, defaultValue bool) bool {
 		return defaultValue
 	}
 	return value
+}
+
+func isFlagPassed(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
 }

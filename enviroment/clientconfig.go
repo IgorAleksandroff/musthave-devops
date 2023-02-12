@@ -8,38 +8,77 @@ import (
 )
 
 const (
-	ClientEnvServerURL      = "ADDRESS"
-	ClientEnvPollInterval   = "POLL_INTERVAL"
-	ClientEnvReportInterval = "REPORT_INTERVAL"
-	ClientEnvHashKey        = "KEY"
+	ClientEnvServerURL       = "ADDRESS"
+	ClientEnvPollInterval    = "POLL_INTERVAL"
+	ClientEnvReportInterval  = "REPORT_INTERVAL"
+	ClientEnvHashKey         = "KEY"
+	ClientEnvPublicCryptoKey = "CRYPTO_KEY"
+	ClientEnvPublicCfgPath   = "CONFIG"
 
-	ClientDefaultServerURL      = "localhost:8080"
-	ClientDefaultPollInterval   = 2 * time.Second
-	ClientDefaultReportInterval = 10 * time.Second
-	ClientDefaultEnvHashKey     = ""
+	ClientDefaultServerURL          = "localhost:8080"
+	ClientDefaultPollInterval       = 2 * time.Second
+	ClientDefaultReportInterval     = 10 * time.Second
+	ClientDefaultEnvHashKey         = ""
+	ClientDefaultEnvPublicCryptoKey = ""
+	ClientDefaultCfgPath            = ""
 )
 
-type ClientConfig struct {
+type clientConfig struct {
 	Host           string
 	PollInterval   time.Duration
 	ReportInterval time.Duration
 	HashKey        string
+	CryptoKeyPath  string
 }
 
-func NewClientConfig() ClientConfig {
-	log.Println("os:", os.Args)
+func NewClientConfig() clientConfig {
+	log.Printf("os: %+v", os.Args)
+
+	cfg := clientConfig{
+		Host:           ClientDefaultServerURL,
+		PollInterval:   ClientDefaultPollInterval,
+		ReportInterval: ClientDefaultReportInterval,
+		HashKey:        ClientDefaultEnvHashKey,
+		CryptoKeyPath:  ClientDefaultEnvPublicCryptoKey,
+	}
+
 	hostFlag := flag.String("a", ClientDefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", ClientDefaultPollInterval, "частота обновления метрик в секундах")
 	reportIntervalFlag := flag.Duration("r", ClientDefaultReportInterval, "частота отправки метрик в секундах")
 	hashKey := flag.String("k", ClientDefaultEnvHashKey, "ключ подписи метрик")
+	cryptoKey := flag.String("crypto-key", ClientDefaultEnvPublicCryptoKey, "путь до файла с публичным ключом")
+	cfgPathFlag := flag.String("c", ClientDefaultCfgPath, "путь до json файла конфигурации сервера")
+
 	flag.Parse()
 
-	cfg := ClientConfig{
-		Host:           "http://" + GetEnvString(ClientEnvServerURL, *hostFlag),
-		PollInterval:   GetEnvDuration(ClientEnvPollInterval, *pollIntervalFlag),
-		ReportInterval: GetEnvDuration(ClientEnvReportInterval, *reportIntervalFlag),
-		HashKey:        GetEnvString(ClientEnvHashKey, *hashKey),
+	cfgJSONPath := GetEnvString(ClientEnvPublicCfgPath, *cfgPathFlag)
+	if cfgJSONPath != ClientDefaultCfgPath {
+		updateClientConfigByJSON(cfgJSONPath, &cfg)
 	}
+
+	// update only parameters of Client from json config by flags
+	if hostFlag != nil && isFlagPassed("a") {
+		cfg.Host = *hostFlag
+	}
+	if pollIntervalFlag != nil && isFlagPassed("p") {
+		cfg.PollInterval = *pollIntervalFlag
+	}
+	if reportIntervalFlag != nil && isFlagPassed("r") {
+		cfg.ReportInterval = *reportIntervalFlag
+	}
+	if cryptoKey != nil && isFlagPassed("crypto-key") {
+		cfg.CryptoKeyPath = *cryptoKey
+	}
+
+	// update Client config by env, default is flag or json parameter
+	cfg.Host = GetEnvString(ClientEnvServerURL, cfg.Host)
+	cfg.PollInterval = GetEnvDuration(ClientEnvPollInterval, cfg.PollInterval)
+	cfg.ReportInterval = GetEnvDuration(ClientEnvReportInterval, cfg.ReportInterval)
+	cfg.HashKey = GetEnvString(ClientEnvHashKey, *hashKey)
+	cfg.CryptoKeyPath = GetEnvString(ClientEnvPublicCryptoKey, cfg.CryptoKeyPath)
+
+	cfg.Host = "http://" + cfg.Host
+
 	log.Printf("Parsed Client config: %+v", cfg)
 
 	return cfg

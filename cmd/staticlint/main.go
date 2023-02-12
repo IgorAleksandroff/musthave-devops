@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/IgorAleksandroff/musthave-devops/internal/checkers"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/copylock"
@@ -12,6 +11,8 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"honnef.co/go/tools/simple"
 	"honnef.co/go/tools/staticcheck"
+
+	"github.com/IgorAleksandroff/musthave-devops/internal/checkers"
 )
 
 func main() {

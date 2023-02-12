@@ -2,23 +2,33 @@ package api
 
 import (
 	"compress/gzip"
+	"context"
 	"io"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 
+	"github.com/IgorAleksandroff/musthave-devops/enviroment"
+	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/metrichandler"
 )
 
+const (
+	defaultReadTimeout     = 5 * time.Second
+	defaultWriteTimeout    = 5 * time.Second
+	defaultShutdownTimeout = 3 * time.Second
+)
+
 type Server interface {
-	Run() error
+	Run(ctx context.Context)
 }
 
 type server struct {
-	host   string
-	router *chi.Mux
+	serverHTTP *http.Server
 }
 
 type gzipWriter struct {
@@ -26,13 +36,23 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func NewServer(host, key string, metricsUC metricscollection.MetricsCollection) *server {
+func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)
 	r.Use(gzipHandle)
 
-	metricHandler := metrichandler.New(metricsUC, key)
+	if cfg.CryptoKeyPath != "" {
+		dc, err := datacrypt.New(
+			datacrypt.WithPrivateKey(cfg.CryptoKeyPath),
+			datacrypt.WithLabel("metrics"),
+		)
+		if err == nil && dc != nil {
+			r.Use(dc.GetDecryptMiddleware())
+		}
+	}
+
+	metricHandler := metrichandler.New(metricsUC, cfg.HashKey)
 
 	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
 	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
@@ -43,16 +63,43 @@ func NewServer(host, key string, metricsUC metricscollection.MetricsCollection) 
 	r.MethodFunc(http.MethodPost, "/updates/", metricHandler.HandleJSONPostBatch)
 
 	return &server{
-		router: r,
-		host:   host,
+		serverHTTP: &http.Server{
+			Handler:      r,
+			ReadTimeout:  defaultReadTimeout,
+			WriteTimeout: defaultWriteTimeout,
+			Addr:         cfg.Host,
+		},
 	}
 }
 
-func (s *server) Run() error {
-	return http.ListenAndServe(s.host, s.router)
+func (s server) Run(ctx context.Context) {
+	notify := make(chan error, 1)
+	go func() {
+		notify <- s.serverHTTP.ListenAndServe()
+		close(notify)
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.Println("server interrupted by", ctx.Err())
+	case err := <-notify:
+		log.Printf("http server stopped: %s", err)
+
+		s.shutdown()
+	}
 }
 
 var _ Server = &server{}
+
+func (s server) shutdown() {
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
+	defer cancel()
+
+	err := s.serverHTTP.Shutdown(ctxShutdown)
+	if err != nil {
+		log.Printf("error shutdown http server: %s", err)
+	}
+}
 
 func (w gzipWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него

@@ -64,28 +64,27 @@ func (r *MemoRep) GetMetrics() map[string]metricscollectionentity.Metrics {
 }
 
 func (r *MemoRep) MemSync() {
-	go func() {
-		ticker := time.NewTicker(r.cfg.StoreInterval)
-		if r.cfg.StoreInterval == 0 {
-			ticker.Stop()
-		}
-		defer ticker.Stop()
-		for {
-			select {
-			case <-r.ctx.Done():
-				err := r.flushMemo()
-				if err != nil {
-					log.Printf("can't save metrics, %s", err.Error())
-				}
-				return
-			case <-ticker.C:
-				err := r.flushMemo()
-				if err != nil {
-					log.Printf("can't save metrics, %s", err.Error())
-				}
+	ticker := time.NewTicker(r.cfg.StoreInterval)
+	if r.cfg.StoreInterval == 0 {
+		ticker.Stop()
+	}
+	defer ticker.Stop()
+	for {
+		select {
+		case <-r.ctx.Done():
+			log.Println("flush inmemory by", r.ctx.Err())
+			err := r.flushMemo()
+			if err != nil {
+				log.Printf("can't save metrics, %s", err.Error())
+			}
+			return
+		case <-ticker.C:
+			err := r.flushMemo()
+			if err != nil {
+				log.Printf("can't save metrics, %s", err.Error())
 			}
 		}
-	}()
+	}
 }
 
 func (r *MemoRep) Ping() error {

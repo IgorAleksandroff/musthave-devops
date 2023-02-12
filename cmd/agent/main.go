@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
@@ -21,24 +25,41 @@ func main() {
 	fmt.Println("Build date: ", buildDate)
 	fmt.Println("Build commit: ", buildCommit)
 
-	config := enviroment.NewClientConfig()
+	cfg := enviroment.NewClientConfig()
 
-	client := devopsserver.NewClient(config.Host)
-	runtimeMetricsRepo := runtimemetrics.NewRepository(config.HashKey)
+	client, err := devopsserver.NewClient(cfg.Host, cfg.CryptoKeyPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	runtimeMetricsRepo := runtimemetrics.NewRepository(cfg.HashKey)
 	runtimeMetricsUC := runtimemetrics.NewRuntimeMetrics(runtimeMetricsRepo, client)
 
-	pollTicker := time.NewTicker(config.PollInterval)
-	reportTicker := time.NewTicker(config.ReportInterval)
+	pollTicker := time.NewTicker(cfg.PollInterval)
+	reportTicker := time.NewTicker(cfg.ReportInterval)
 	defer pollTicker.Stop()
 	defer reportTicker.Stop()
 
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	stopCommand := false
 	for {
 		select {
 		case <-pollTicker.C:
-			go runtimeMetricsUC.UpdateUtilMetrics()
-			go runtimeMetricsUC.UpdateMetrics()
+			runtimeMetricsUC.UpdateUtilMetrics()
+			runtimeMetricsUC.UpdateMetrics()
 		case <-reportTicker.C:
-			go runtimeMetricsUC.SendMetricsBatch()
+			runtimeMetricsUC.SendMetricsBatch()
+		case s := <-interrupt:
+			stopCommand = true
+			log.Printf("got signal: %s", s)
+		}
+
+		if stopCommand {
+			break
 		}
 	}
+
+	log.Println("app interrupted by sys signal")
 }

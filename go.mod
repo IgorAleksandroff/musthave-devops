@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/go-chi/chi v1.5.4
 	github.com/jackc/pgx/v4 v4.17.2
+	github.com/pkg/errors v0.8.1
 	github.com/shirou/gopsutil/v3 v3.22.12
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/swag v1.8.9

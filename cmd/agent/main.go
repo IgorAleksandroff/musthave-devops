@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -44,24 +43,14 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	wg := &sync.WaitGroup{}
 	stopCommand := false
 	for {
 		select {
 		case <-pollTicker.C:
-			wg.Add(1)
-			go func() {
-				runtimeMetricsUC.UpdateUtilMetrics()
-				runtimeMetricsUC.UpdateMetrics()
-
-				wg.Done()
-			}()
+			runtimeMetricsUC.UpdateUtilMetrics()
+			runtimeMetricsUC.UpdateMetrics()
 		case <-reportTicker.C:
-			wg.Add(1)
-			go func() {
-				runtimeMetricsUC.SendMetricsBatch()
-				wg.Done()
-			}()
+			runtimeMetricsUC.SendMetricsBatch()
 		case s := <-interrupt:
 			stopCommand = true
 			log.Printf("got signal: %s", s)
@@ -71,7 +60,6 @@ func main() {
 			break
 		}
 	}
-	wg.Wait()
 
 	log.Println("app interrupted by sys signal")
 }

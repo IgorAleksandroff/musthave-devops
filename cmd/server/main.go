@@ -49,9 +49,9 @@ func main() {
 		wg.Done()
 	}()
 
-	server := api.NewServer(ctx, config.ServerConfig, metricsUC)
+	server := api.NewServer(config.ServerConfig, metricsUC)
 
-	server.Run()
+	server.Run(ctx)
 
 	wg.Wait()
 

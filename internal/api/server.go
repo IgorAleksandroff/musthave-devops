@@ -24,11 +24,10 @@ const (
 )
 
 type Server interface {
-	Run()
+	Run(ctx context.Context)
 }
 
 type server struct {
-	ctx        context.Context
 	serverHTTP *http.Server
 }
 
@@ -37,7 +36,7 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func NewServer(ctx context.Context, cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
+func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)
@@ -64,7 +63,6 @@ func NewServer(ctx context.Context, cfg enviroment.ServerConfig, metricsUC metri
 	r.MethodFunc(http.MethodPost, "/updates/", metricHandler.HandleJSONPostBatch)
 
 	return &server{
-		ctx: ctx,
 		serverHTTP: &http.Server{
 			Handler:      r,
 			ReadTimeout:  defaultReadTimeout,
@@ -74,7 +72,7 @@ func NewServer(ctx context.Context, cfg enviroment.ServerConfig, metricsUC metri
 	}
 }
 
-func (s *server) Run() {
+func (s server) Run(ctx context.Context) {
 	notify := make(chan error, 1)
 	go func() {
 		notify <- s.serverHTTP.ListenAndServe()
@@ -82,22 +80,26 @@ func (s *server) Run() {
 	}()
 
 	select {
-	case <-s.ctx.Done():
-		log.Println("server interrupted by", s.ctx.Err())
+	case <-ctx.Done():
+		log.Println("server interrupted by", ctx.Err())
 	case err := <-notify:
 		log.Printf("http server stopped: %s", err)
-	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
-	defer cancel()
-
-	err := s.serverHTTP.Shutdown(ctx)
-	if err != nil {
-		log.Printf("error shutdown http server: %s", err)
+		s.shutdown()
 	}
 }
 
 var _ Server = &server{}
+
+func (s server) shutdown() {
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
+	defer cancel()
+
+	err := s.serverHTTP.Shutdown(ctxShutdown)
+	if err != nil {
+		log.Printf("error shutdown http server: %s", err)
+	}
+}
 
 func (w gzipWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него

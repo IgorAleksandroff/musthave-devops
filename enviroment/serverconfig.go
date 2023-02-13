@@ -123,11 +123,11 @@ func (s ServerConfig) GetTrustedIPMiddleware() func(next http.Handler) http.Hand
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if s.subnet != nil {
-				clientIpString := r.Header.Get("X-Real-IP")
-				clientIP := net.ParseIP(clientIpString)
+				clientIPString := r.Header.Get("X-Real-IP")
+				clientIP := net.ParseIP(clientIPString)
 
 				if !s.subnet.Contains(clientIP) {
-					log.Println("request from an untrusted address:", clientIpString)
+					log.Println("request from an untrusted address:", clientIPString)
 					http.Error(w, "IP isn't part of a trusted subnet", http.StatusForbidden)
 					return
 				}

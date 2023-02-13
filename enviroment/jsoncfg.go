@@ -3,6 +3,7 @@ package enviroment
 import (
 	"encoding/json"
 	"log"
+	"net"
 	"os"
 	"strconv"
 	"time"
@@ -25,6 +26,7 @@ type serverJSONConfig struct {
 	StorePath     string `json:"store_file,omitempty"`
 	AddressDB     string `json:"database_dsn,omitempty"`
 	CryptoKeyPath string `json:"crypto_key,omitempty"`
+	TrustedSubnet string `json:"trusted_subnet,omitempty"`
 }
 
 func updateClientConfigByJSON(path string, cfg *clientConfig) {
@@ -90,5 +92,11 @@ func updateServerConfigByJSON(path string, cfg *config) {
 		log.Printf(errorParseServerJSONConfig, path, err)
 	} else {
 		cfg.StoreInterval = v
+	}
+
+	if _, v, err := net.ParseCIDR(cfgJSON.TrustedSubnet); err != nil {
+		log.Printf(errorParseServerJSONConfig, path, err)
+	} else {
+		cfg.Subnet = v
 	}
 }

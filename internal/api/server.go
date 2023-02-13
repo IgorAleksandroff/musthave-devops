@@ -41,6 +41,7 @@ func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsC
 
 	r.Use(gzipUnzip)
 	r.Use(gzipHandle)
+	r.Use(cfg.GetTrustedIPMiddleware())
 
 	if cfg.CryptoKeyPath != "" {
 		dc, err := datacrypt.New(

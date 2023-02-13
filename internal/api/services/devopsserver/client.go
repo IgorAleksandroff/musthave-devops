@@ -15,9 +15,9 @@ import (
 
 type (
 	client struct {
-		serverName string
-		transport  *http.Client
-		crypt      datacrypt.Cypher
+		serverName, serverIPAddr string
+		transport                *http.Client
+		crypt                    datacrypt.Cypher
 	}
 
 	Client interface {
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func NewClient(serverName, cryptoKeyPathstring string) (Client, error) {
+func NewClient(serverName, netInterfaceAddr, cryptoKeyPathstring string) (Client, error) {
 	var dc datacrypt.Cypher
 
 	if cryptoKeyPathstring != "" {
@@ -42,13 +42,16 @@ func NewClient(serverName, cryptoKeyPathstring string) (Client, error) {
 	}
 
 	return &client{
-		serverName: serverName,
-		transport:  &http.Client{},
-		crypt:      dc,
+		serverName:   serverName,
+		serverIPAddr: netInterfaceAddr,
+		transport:    &http.Client{},
+		crypt:        dc,
 	}, nil
 }
 
 func (c client) do(req *http.Request) (body []byte, err error) {
+	req.Header.Add("X-Real-IP", c.serverIPAddr)
+
 	r, err := c.transport.Do(req)
 	if err != nil {
 		return nil, err

@@ -97,6 +97,6 @@ func updateServerConfigByJSON(path string, cfg *config) {
 	if _, v, err := net.ParseCIDR(cfgJSON.TrustedSubnet); err != nil {
 		log.Printf(errorParseServerJSONConfig, path, err)
 	} else {
-		cfg.Subnet = v
+		cfg.subnet = v
 	}
 }

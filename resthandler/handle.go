@@ -3,7 +3,7 @@
 // @description Service for saving metrics and providing read access to them
 // @Version 1.0
 
-package metrichandler
+package resthandler
 
 import (
 	"bytes"

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package rpc;
+
+option go_package = "internal/generated/rpc";
+
+import "validate.proto";
+
+service MetricsCollection {
+  rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
+}
+
+message UpdateMetricsRequest {
+  repeated Metrics metrics = 1;
+}
+
+message UpdateMetricsResponse {}
+
+message Metrics {
+  string id = 1 [(validate.rules).string =  { not_in: "" }];
+  enum MType {
+    COUNTER = 0;
+    GAUGE = 1;
+  }
+  MType m_type = 2;
+  int64 delta = 3 [(validate.rules).int64.gt = 0];
+  double value = 4 [(validate.rules).double.gte = 0];
+  string hash = 5  [(validate.rules).string.len = 64];
+}

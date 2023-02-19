@@ -42,14 +42,17 @@ func main() {
 	}
 	defer metricsUC.Close()
 
+	server, err := api.NewServer(config.ServerConfig, metricsUC)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		metricsUC.MemSync()
 		wg.Done()
 	}()
-
-	server := api.NewServer(config.ServerConfig, metricsUC)
 
 	server.Run(ctx)
 

@@ -5,16 +5,20 @@ import (
 	"context"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/IgorAleksandroff/musthave-devops/internal/generated/rpc"
+	"github.com/IgorAleksandroff/musthave-devops/internal/grpchandler"
 	"github.com/go-chi/chi"
+	"google.golang.org/grpc"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
-	"github.com/IgorAleksandroff/musthave-devops/metrichandler"
+	"github.com/IgorAleksandroff/musthave-devops/resthandler"
 )
 
 const (
@@ -28,7 +32,9 @@ type Server interface {
 }
 
 type server struct {
-	serverHTTP *http.Server
+	serverHTTP   *http.Server
+	serverGRPC   *grpc.Server
+	gRPCListener net.Listener
 }
 
 type gzipWriter struct {
@@ -36,7 +42,8 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) *server {
+func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsCollection) (*server, error) {
+	// init HTTP server
 	r := chi.NewRouter()
 
 	r.Use(gzipUnzip)
@@ -53,15 +60,25 @@ func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsC
 		}
 	}
 
-	metricHandler := metrichandler.New(metricsUC, cfg.HashKey)
+	metricRESTHandler := resthandler.New(metricsUC, cfg.HashKey)
 
-	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricHandler.HandleMetricPost)
-	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricHandler.HandleMetricGet)
-	r.MethodFunc(http.MethodGet, "/", metricHandler.HandleMetricsGet)
-	r.MethodFunc(http.MethodPost, "/update/", metricHandler.HandleJSONPost)
-	r.MethodFunc(http.MethodPost, "/value/", metricHandler.HandleJSONGet)
-	r.MethodFunc(http.MethodGet, "/ping", metricHandler.HandleDBPing)
-	r.MethodFunc(http.MethodPost, "/updates/", metricHandler.HandleJSONPostBatch)
+	r.MethodFunc(http.MethodPost, "/update/{TYPE}/{NAME}/{VALUE}", metricRESTHandler.HandleMetricPost)
+	r.MethodFunc(http.MethodGet, "/value/{TYPE}/{NAME}", metricRESTHandler.HandleMetricGet)
+	r.MethodFunc(http.MethodGet, "/", metricRESTHandler.HandleMetricsGet)
+	r.MethodFunc(http.MethodPost, "/update/", metricRESTHandler.HandleJSONPost)
+	r.MethodFunc(http.MethodPost, "/value/", metricRESTHandler.HandleJSONGet)
+	r.MethodFunc(http.MethodGet, "/ping", metricRESTHandler.HandleDBPing)
+	r.MethodFunc(http.MethodPost, "/updates/", metricRESTHandler.HandleJSONPostBatch)
+
+	// init GRPC server
+	listen, err := net.Listen("tcp", ":3200")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := grpc.NewServer()
+	metricGRPCHandler := grpchandler.New(metricsUC)
+	rpc.RegisterMetricsCollectionServer(s, metricGRPCHandler)
 
 	return &server{
 		serverHTTP: &http.Server{
@@ -70,29 +87,44 @@ func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsC
 			WriteTimeout: defaultWriteTimeout,
 			Addr:         cfg.Host,
 		},
-	}
+		serverGRPC:   s,
+		gRPCListener: listen,
+	}, nil
 }
 
 func (s server) Run(ctx context.Context) {
-	notify := make(chan error, 1)
+	notifyHTTP := make(chan error, 1)
 	go func() {
-		notify <- s.serverHTTP.ListenAndServe()
-		close(notify)
+		notifyHTTP <- s.serverHTTP.ListenAndServe()
+		close(notifyHTTP)
+	}()
+
+	notifyGRPC := make(chan error, 1)
+	go func() {
+		notifyGRPC <- s.serverGRPC.Serve(s.gRPCListener)
+		close(notifyGRPC)
 	}()
 
 	select {
 	case <-ctx.Done():
 		log.Println("server interrupted by", ctx.Err())
-	case err := <-notify:
-		log.Printf("http server stopped: %s", err)
 
-		s.shutdown()
+		s.serverGRPC.GracefulStop()
+		s.shutdownHTTP()
+	case err := <-notifyHTTP:
+		log.Printf("HTTP server stopped: %s", err)
+
+		s.serverGRPC.GracefulStop()
+	case err := <-notifyGRPC:
+		log.Printf("gRPC server stopped: %s", err)
+
+		s.shutdownHTTP()
 	}
 }
 
 var _ Server = &server{}
 
-func (s server) shutdown() {
+func (s server) shutdownHTTP() {
 	ctxShutdown, cancel := context.WithTimeout(context.Background(), defaultShutdownTimeout)
 	defer cancel()
 

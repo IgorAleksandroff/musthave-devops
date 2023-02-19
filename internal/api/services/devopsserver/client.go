@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
@@ -40,7 +41,8 @@ type (
 	}
 
 	clientGRPC struct {
-		client rpc.MetricsCollectionClient
+		client       rpc.MetricsCollectionClient
+		serverIPAddr string
 	}
 )
 
@@ -52,7 +54,7 @@ func NewClient(cfg enviroment.ClientConfig) (Client, error) {
 	return NewClientHTTP(cfg.Host, cfg.NetInterfaceAddr, cfg.CryptoKeyPath)
 }
 
-func NewClientGRPS(ip, socket string) (*clientGRPC, error) {
+func NewClientGRPS(netInterfaceAddr, socket string) (*clientGRPC, error) {
 	// устанавливаем соединение с сервером
 	conn, err := grpc.Dial(socket, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -65,7 +67,10 @@ func NewClientGRPS(ip, socket string) (*clientGRPC, error) {
 		}
 	}(conn)
 
-	return &clientGRPC{client: rpc.NewMetricsCollectionClient(conn)}, nil
+	return &clientGRPC{
+		client:       rpc.NewMetricsCollectionClient(conn),
+		serverIPAddr: netInterfaceAddr,
+	}, nil
 }
 
 func (c clientGRPC) Update(_ string, data []Metrics) error {
@@ -96,7 +101,10 @@ func (c clientGRPC) Update(_ string, data []Metrics) error {
 		metrics = append(metrics, &metric)
 	}
 
-	_, err := c.client.UpdateMetrics(context.Background(), &rpc.UpdateMetricsRequest{
+	md := metadata.New(map[string]string{"X-Real-IP": c.serverIPAddr})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	_, err := c.client.UpdateMetrics(ctx, &rpc.UpdateMetricsRequest{
 		Metrics: metrics,
 	})
 	if err != nil {

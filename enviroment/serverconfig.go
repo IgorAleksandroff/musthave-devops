@@ -1,12 +1,18 @@
 package enviroment
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -134,12 +140,30 @@ func (s ServerConfig) GetTrustedIPMiddleware() func(next http.Handler) http.Hand
 
 				if !s.subnet.Contains(clientIP) {
 					log.Println("request from an untrusted address:", clientIPString)
-					http.Error(w, "IP isn't part of a trusted subnet", http.StatusForbidden)
+					http.Error(w, "ip isn't part of a trusted subnet", http.StatusForbidden)
 					return
 				}
 			}
 
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func (s ServerConfig) GetTrustedIPInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		var clientIP net.IP
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			values := md.Get("X-Real-IP")
+			if len(values) > 0 {
+				clientIP = net.ParseIP(values[0])
+			}
+		}
+		if !s.subnet.Contains(clientIP) {
+			log.Println("request from an untrusted address:", clientIP)
+			return nil, status.Error(codes.Unauthenticated, "ip isn't part of a trusted subnet")
+		}
+
+		return handler(ctx, req)
 	}
 }

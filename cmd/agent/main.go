@@ -27,7 +27,7 @@ func main() {
 
 	cfg := enviroment.NewClientConfig()
 
-	client, err := devopsserver.NewClient(cfg.Host, cfg.NetInterfaceAddr, cfg.CryptoKeyPath)
+	client, err := devopsserver.NewClient(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

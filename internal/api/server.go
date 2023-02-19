@@ -71,13 +71,13 @@ func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsC
 	r.MethodFunc(http.MethodPost, "/updates/", metricRESTHandler.HandleJSONPostBatch)
 
 	// init GRPC server
-	listen, err := net.Listen("tcp", ":3200")
+	listen, err := net.Listen("tcp", cfg.GRPSSocket)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s := grpc.NewServer()
-	metricGRPCHandler := grpchandler.New(metricsUC)
+	metricGRPCHandler := grpchandler.New(metricsUC, cfg.HashKey)
 	rpc.RegisterMetricsCollectionServer(s, metricGRPCHandler)
 
 	return &server{

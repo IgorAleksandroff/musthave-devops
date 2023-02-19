@@ -24,6 +24,7 @@ const (
 	ServerDefaultStoreInterval = 300 * time.Second
 	ServerDefaultStoreFile     = "/tmp/devops-metrics-db.json"
 	ServerDefaultRestore       = true
+	ServerDefaultGRPSSocket    = ":3200"
 	ServerDefaultString        = ""
 )
 
@@ -32,6 +33,7 @@ type ServerConfig struct {
 	HashKey       string
 	CryptoKeyPath string
 	subnet        *net.IPNet
+	GRPSSocket    string
 }
 
 type config struct {
@@ -66,11 +68,12 @@ func NewServerConfig() config {
 	cryptoKeyFlag := flag.String("crypto-key", ServerDefaultString, "путь до файла с приватным ключом")
 	cfgPathFlag := flag.String("c", ServerDefaultString, "путь до json файла конфигурации сервера")
 	subnetFlag := flag.String("t", ServerDefaultString, "доверенная подсеть CIDR")
+	socketFlag := flag.String("s", ServerDefaultGRPSSocket, "если не указан порт gRPC сервера, то используется HTTP клиент")
 
 	flag.Parse()
 
 	cfgJSONPath := GetEnvString(ServerEnvPublicCfgPath, *cfgPathFlag)
-	if cfgJSONPath != ClientDefaultCfgPath {
+	if cfgJSONPath != ServerDefaultString {
 		updateServerConfigByJSON(cfgJSONPath, &cfg)
 	}
 
@@ -96,6 +99,9 @@ func NewServerConfig() config {
 	subnetString := cfg.subnet.String()
 	if subnetFlag != nil && isFlagPassed("t") {
 		subnetString = *subnetFlag
+	}
+	if socketFlag != nil && isFlagPassed("s") {
+		cfg.GRPSSocket = *socketFlag
 	}
 
 	// update Client config by env, default is flag or json parameter

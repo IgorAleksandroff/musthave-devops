@@ -43,12 +43,12 @@ func (h handler) UpdateMetrics(ctx context.Context, r *rpc.UpdateMetricsRequest)
 			metricToSave.MType = metricscollectionentity.CounterTypeMetric
 			metricToSave.CalcHash(fmt.Sprintf("%s:gauge:%f", m.GetId(), m.GetValue()), h.hashKey)
 		default:
-			return nil, status.Errorf(codes.NotFound, "unknown type:", m)
+			return nil, status.Errorf(codes.NotFound, "unknown type metric: %s", m)
 		}
 
-		if h.hashKey != enviroment.ClientDefaultEnvHashKey && metricToSave.Hash != m.Hash {
+		if h.hashKey != enviroment.ServerDefaultString && metricToSave.Hash != m.Hash {
 			log.Println("hash isn't valid:", metricToSave.Hash, m)
-			return nil, status.Errorf(codes.Aborted, "hash isn't valid:", m)
+			return nil, status.Errorf(codes.Aborted, "hash isn't valid: %s", m)
 		}
 
 		metricToSave.ID = m.GetId()

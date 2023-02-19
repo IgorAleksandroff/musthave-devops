@@ -35,7 +35,7 @@ func (m *Metrics) Copy() Metrics {
 }
 
 func (m *Metrics) CalcHash(value, key string) {
-	if key == enviroment.ClientDefaultEnvHashKey {
+	if key == enviroment.ClientDefaultString {
 		m.Hash = ""
 		return
 	}

@@ -18,45 +18,45 @@ const (
 	ClientEnvPublicCryptoKey = "CRYPTO_KEY"
 	ClientEnvPublicCfgPath   = "CONFIG"
 
-	ClientDefaultServerURL          = "localhost:8080"
-	ClientDefaultPollInterval       = 2 * time.Second
-	ClientDefaultReportInterval     = 10 * time.Second
-	ClientDefaultEnvHashKey         = ""
-	ClientDefaultEnvPublicCryptoKey = ""
-	ClientDefaultCfgPath            = ""
+	ClientDefaultServerURL      = "localhost:8080"
+	ClientDefaultPollInterval   = 2 * time.Second
+	ClientDefaultReportInterval = 10 * time.Second
+	ClientDefaultString         = ""
 )
 
-type clientConfig struct {
+type ClientConfig struct {
 	Host             string
 	NetInterfaceAddr string
 	PollInterval     time.Duration
 	ReportInterval   time.Duration
 	HashKey          string
 	CryptoKeyPath    string
+	GRPSServerSocket string
 }
 
-func NewClientConfig() clientConfig {
+func NewClientConfig() ClientConfig {
 	log.Printf("os: %+v", os.Args)
 
-	cfg := clientConfig{
+	cfg := ClientConfig{
 		Host:           ClientDefaultServerURL,
 		PollInterval:   ClientDefaultPollInterval,
 		ReportInterval: ClientDefaultReportInterval,
-		HashKey:        ClientDefaultEnvHashKey,
-		CryptoKeyPath:  ClientDefaultEnvPublicCryptoKey,
+		HashKey:        ClientDefaultString,
+		CryptoKeyPath:  ClientDefaultString,
 	}
 
 	hostFlag := flag.String("a", ClientDefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", ClientDefaultPollInterval, "частота обновления метрик в секундах")
 	reportIntervalFlag := flag.Duration("r", ClientDefaultReportInterval, "частота отправки метрик в секундах")
-	hashKey := flag.String("k", ClientDefaultEnvHashKey, "ключ подписи метрик")
-	cryptoKey := flag.String("crypto-key", ClientDefaultEnvPublicCryptoKey, "путь до файла с публичным ключом")
-	cfgPathFlag := flag.String("c", ClientDefaultCfgPath, "путь до json файла конфигурации сервера")
+	hashKey := flag.String("k", ClientDefaultString, "ключ подписи метрик")
+	cryptoKey := flag.String("crypto-key", ClientDefaultString, "путь до файла с публичным ключом")
+	cfgPathFlag := flag.String("c", ClientDefaultString, "путь до json файла конфигурации сервера")
+	socketFlag := flag.String("s", ClientDefaultString, "если не указан gRPC сервер:порт, то используется HTTP клиент")
 
 	flag.Parse()
 
 	cfgJSONPath := GetEnvString(ClientEnvPublicCfgPath, *cfgPathFlag)
-	if cfgJSONPath != ClientDefaultCfgPath {
+	if cfgJSONPath != ClientDefaultString {
 		updateClientConfigByJSON(cfgJSONPath, &cfg)
 	}
 
@@ -72,6 +72,9 @@ func NewClientConfig() clientConfig {
 	}
 	if cryptoKey != nil && isFlagPassed("crypto-key") {
 		cfg.CryptoKeyPath = *cryptoKey
+	}
+	if socketFlag != nil && isFlagPassed("s") {
+		cfg.GRPSServerSocket = *socketFlag
 	}
 
 	// update Client config by env, default is flag or json parameter

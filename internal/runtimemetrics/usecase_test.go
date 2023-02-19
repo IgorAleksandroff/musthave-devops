@@ -17,6 +17,28 @@ func Test_usecase_SendMetrics(t *testing.T) {
 		repository         runtimemetrics.Repository
 		devopsServerClient devopsserver.Client
 	}
+
+	metric01 := runtimemetrics.Metrics{
+		ID:    "name01",
+		MType: "gauge",
+		Value: func() *float64 { v := 0.1; return &v }(),
+	}
+	metric02 := runtimemetrics.Metrics{
+		ID:    "name02",
+		MType: "counter",
+		Delta: func() *int64 { v := int64(02); return &v }(),
+	}
+	metricDTO01 := devopsserver.Metrics{
+		ID:    "name01",
+		MType: "gauge",
+		Value: func() *float64 { v := 0.1; return &v }(),
+	}
+	metricDTO02 := devopsserver.Metrics{
+		ID:    "name02",
+		MType: "counter",
+		Delta: func() *int64 { v := int64(02); return &v }(),
+	}
+
 	tests := []struct {
 		name   string
 		fields func() fields
@@ -30,23 +52,13 @@ func Test_usecase_SendMetrics(t *testing.T) {
 					"name01",
 					"name02",
 				})
-				metric01 := runtimemetrics.Metrics{
-					ID:    "name01",
-					MType: "gauge",
-					Value: func() *float64 { v := 0.1; return &v }(),
-				}
-				metric02 := runtimemetrics.Metrics{
-					ID:    "name02",
-					MType: "counter",
-					Delta: func() *int64 { v := int64(02); return &v }(),
-				}
 
 				repoMock.On("GetMetric", "name01").Return(metric01, nil).Once()
 				repoMock.On("GetMetric", "name02").Return(metric02, nil).Once()
 
 				clientMock := &serverMocks.Client{}
-				clientMock.On("DoPost", "/update/", metric01).Return(nil, nil).Once()
-				clientMock.On("DoPost", "/update/", metric02).Return(nil, nil).Once()
+				clientMock.On("Update", "/update/", []devopsserver.Metrics{metricDTO01}).Return(nil).Once()
+				clientMock.On("Update", "/update/", []devopsserver.Metrics{metricDTO02}).Return(nil).Once()
 
 				return fields{
 					repository:         repoMock,
@@ -81,22 +93,13 @@ func Test_usecase_SendMetrics(t *testing.T) {
 					"name01",
 					"name02",
 				})
-				metric01 := runtimemetrics.Metrics{
-					ID:    "name01",
-					MType: "gauge",
-					Value: func() *float64 { v := 0.1; return &v }(),
-				}
-				metric02 := runtimemetrics.Metrics{
-					ID:    "name02",
-					MType: "counter",
-					Delta: func() *int64 { v := int64(02); return &v }(),
-				}
+
 				repoMock.On("GetMetric", "name01").Return(metric01, nil).Once()
 				repoMock.On("GetMetric", "name02").Return(metric02, nil).Once()
 
 				clientMock := &serverMocks.Client{}
-				clientMock.On("DoPost", "/update/", metric01).Return(nil, errors.New("err")).Once()
-				clientMock.On("DoPost", "/update/", metric02).Return(nil, nil).Once()
+				clientMock.On("Update", "/update/", []devopsserver.Metrics{metricDTO01}).Return(errors.New("err")).Once()
+				clientMock.On("Update", "/update/", []devopsserver.Metrics{metricDTO02}).Return(nil).Once()
 
 				return fields{
 					repository:         repoMock,
@@ -135,9 +138,23 @@ func Test_usecase_SendMetricsBatch(t *testing.T) {
 		MType: "counter",
 		Delta: func() *int64 { v := int64(02); return &v }(),
 	}
+	metricDTO01 := devopsserver.Metrics{
+		ID:    "name01",
+		MType: "gauge",
+		Value: func() *float64 { v := 0.1; return &v }(),
+	}
+	metricDTO02 := devopsserver.Metrics{
+		ID:    "name02",
+		MType: "counter",
+		Delta: func() *int64 { v := int64(02); return &v }(),
+	}
 	testMetrics := []runtimemetrics.Metrics{
 		metric01,
 		metric02,
+	}
+	testMetricsDTO := []devopsserver.Metrics{
+		metricDTO01,
+		metricDTO02,
 	}
 
 	tests := []struct {
@@ -152,7 +169,7 @@ func Test_usecase_SendMetricsBatch(t *testing.T) {
 				repoMock.On("GetMetrics").Return(testMetrics)
 
 				clientMock := &serverMocks.Client{}
-				clientMock.On("DoPost", "/updates/", testMetrics).Return(nil, nil).Once()
+				clientMock.On("Update", "/updates/", testMetricsDTO).Return(nil).Once()
 
 				return fields{
 					repository:         repoMock,
@@ -168,7 +185,7 @@ func Test_usecase_SendMetricsBatch(t *testing.T) {
 				repoMock.On("GetMetrics").Return(testMetrics)
 
 				clientMock := &serverMocks.Client{}
-				clientMock.On("DoPost", "/updates/", testMetrics).Return(nil, errors.New("err")).Once()
+				clientMock.On("Update", "/updates/", testMetricsDTO).Return(errors.New("err")).Once()
 
 				return fields{
 					repository:         repoMock,

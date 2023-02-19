@@ -29,7 +29,7 @@ type serverJSONConfig struct {
 	TrustedSubnet string `json:"trusted_subnet,omitempty"`
 }
 
-func updateClientConfigByJSON(path string, cfg *clientConfig) {
+func updateClientConfigByJSON(path string, cfg *ClientConfig) {
 	f, err := os.Open(path)
 	if err != nil {
 		log.Printf(errorParseClientJSONConfig, path, err)

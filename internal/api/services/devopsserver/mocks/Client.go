@@ -12,6 +12,11 @@ type Client struct {
 	mock.Mock
 }
 
+// Close provides a mock function with given fields:
+func (_m *Client) Close() {
+	_m.Called()
+}
+
 // Update provides a mock function with given fields: url, data
 func (_m *Client) Update(url string, data []devopsserver.Metrics) error {
 	ret := _m.Called(url, data)

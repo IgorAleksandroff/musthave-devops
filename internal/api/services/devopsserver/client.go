@@ -31,6 +31,7 @@ const (
 
 type Client interface {
 	Update(url string, data []Metrics) error
+	Close()
 }
 
 type (
@@ -42,6 +43,7 @@ type (
 
 	clientGRPC struct {
 		client       rpc.MetricsCollectionClient
+		conn         *grpc.ClientConn
 		serverIPAddr string
 	}
 )
@@ -58,17 +60,12 @@ func NewClientGRPS(netInterfaceAddr, socket string) (*clientGRPC, error) {
 	// устанавливаем соединение с сервером
 	conn, err := grpc.Dial(socket, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to connect")
 	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}(conn)
 
 	return &clientGRPC{
 		client:       rpc.NewMetricsCollectionClient(conn),
+		conn:         conn,
 		serverIPAddr: netInterfaceAddr,
 	}, nil
 }
@@ -121,6 +118,12 @@ func (c clientGRPC) Update(_ string, data []Metrics) error {
 	}
 
 	return err
+}
+
+func (c clientGRPC) Close() {
+	if err := c.conn.Close(); err != nil {
+		log.Println(err)
+	}
 }
 
 func NewClientHTTP(serverName, netInterfaceAddr, cryptoKeyPathString string) (*clientHTTP, error) {
@@ -214,5 +217,7 @@ func (c clientHTTP) doPost(path string, data interface{}) ([]byte, error) {
 
 	return body, err
 }
+
+func (c clientHTTP) Close() {}
 
 var _ Client = &clientHTTP{}

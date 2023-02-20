@@ -307,10 +307,10 @@ func (m *Metrics) validate(all bool) error {
 
 	// no validation rules for MType
 
-	if m.GetDelta() <= 0 {
+	if m.GetDelta() < 0 {
 		err := MetricsValidationError{
 			field:  "Delta",
-			reason: "value must be greater than 0",
+			reason: "value must be greater than or equal to 0",
 		}
 		if !all {
 			return err
@@ -329,17 +329,7 @@ func (m *Metrics) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetHash()) != 64 {
-		err := MetricsValidationError{
-			field:  "Hash",
-			reason: "value length must be 64 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-
-	}
+	// no validation rules for Hash
 
 	if len(errors) > 0 {
 		return MetricsMultiError(errors)

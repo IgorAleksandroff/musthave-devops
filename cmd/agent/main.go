@@ -31,6 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer client.Close()
 
 	runtimeMetricsRepo := runtimemetrics.NewRepository(cfg.HashKey)
 	runtimeMetricsUC := runtimemetrics.NewRuntimeMetrics(runtimeMetricsRepo, client)

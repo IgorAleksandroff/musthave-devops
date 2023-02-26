@@ -50,13 +50,13 @@ type (
 
 func NewClient(cfg enviroment.ClientConfig) (Client, error) {
 	if cfg.GRPSServerSocket != "" {
-		return NewClientGRPS(cfg.NetInterfaceAddr, cfg.GRPSServerSocket)
+		return NewClientGRPC(cfg.NetInterfaceAddr, cfg.GRPSServerSocket)
 	}
 
 	return NewClientHTTP(cfg.Host, cfg.NetInterfaceAddr, cfg.CryptoKeyPath)
 }
 
-func NewClientGRPS(netInterfaceAddr, socket string) (*clientGRPC, error) {
+func NewClientGRPC(netInterfaceAddr, socket string) (*clientGRPC, error) {
 	// устанавливаем соединение с сервером
 	conn, err := grpc.Dial(socket, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

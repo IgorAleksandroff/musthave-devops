@@ -27,10 +27,6 @@ func New(metricsUC metricscollection.MetricsCollection, k string) *handler {
 }
 
 func (h handler) UpdateMetrics(ctx context.Context, r *rpc.UpdateMetricsRequest) (*rpc.UpdateMetricsResponse, error) {
-	if err := r.ValidateAll(); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
 	metrics := make([]metricscollectionentity.Metrics, 0)
 	for _, m := range r.GetMetrics() {
 		metricToSave := metricscollectionentity.Metrics{}

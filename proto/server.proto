@@ -17,7 +17,7 @@ message UpdateMetricsRequest {
 message UpdateMetricsResponse {}
 
 message Metrics {
-  string id = 1 [(validate.rules).string =  { not_in: "" }];
+  string id = 1 [(validate.rules).string = {min_len: 1, max_len: 32}];
   enum MType {
     COUNTER = 0;
     GAUGE = 1;

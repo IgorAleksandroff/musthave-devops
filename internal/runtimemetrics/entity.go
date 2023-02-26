@@ -3,8 +3,6 @@ package runtimemetrics
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-
-	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 )
 
 const (
@@ -40,7 +38,7 @@ type Metrics struct {
 }
 
 func (m *Metrics) CalcHash(value, key string) {
-	if key == enviroment.ClientDefaultString {
+	if key == "" {
 		m.Hash = ""
 		return
 	}

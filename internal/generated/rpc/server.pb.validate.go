@@ -294,10 +294,10 @@ func (m *Metrics) validate(all bool) error {
 
 	var errors []error
 
-	if _, ok := _Metrics_Id_NotInLookup[m.GetId()]; ok {
+	if l := utf8.RuneCountInString(m.GetId()); l < 1 || l > 32 {
 		err := MetricsValidationError{
 			field:  "Id",
-			reason: "value must not be in list []",
+			reason: "value length must be between 1 and 32 runes, inclusive",
 		}
 		if !all {
 			return err
@@ -407,7 +407,3 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MetricsValidationError{}
-
-var _Metrics_Id_NotInLookup = map[string]struct{}{
-	"": {},
-}

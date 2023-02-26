@@ -49,7 +49,7 @@ type (
 )
 
 func NewClient(cfg enviroment.ClientConfig) (Client, error) {
-	if cfg.GRPSServerSocket != enviroment.ClientDefaultString {
+	if cfg.GRPSServerSocket != "" {
 		return NewClientGRPS(cfg.NetInterfaceAddr, cfg.GRPSServerSocket)
 	}
 

@@ -21,7 +21,6 @@ const (
 	ClientDefaultServerURL      = "localhost:8080"
 	ClientDefaultPollInterval   = 2 * time.Second
 	ClientDefaultReportInterval = 10 * time.Second
-	ClientDefaultString         = ""
 )
 
 type ClientConfig struct {
@@ -41,22 +40,22 @@ func NewClientConfig() ClientConfig {
 		Host:           ClientDefaultServerURL,
 		PollInterval:   ClientDefaultPollInterval,
 		ReportInterval: ClientDefaultReportInterval,
-		HashKey:        ClientDefaultString,
-		CryptoKeyPath:  ClientDefaultString,
+		HashKey:        "",
+		CryptoKeyPath:  "",
 	}
 
 	hostFlag := flag.String("a", ClientDefaultServerURL, "адрес и порт сервера")
 	pollIntervalFlag := flag.Duration("p", ClientDefaultPollInterval, "частота обновления метрик в секундах")
 	reportIntervalFlag := flag.Duration("r", ClientDefaultReportInterval, "частота отправки метрик в секундах")
-	hashKey := flag.String("k", ClientDefaultString, "ключ подписи метрик")
-	cryptoKey := flag.String("crypto-key", ClientDefaultString, "путь до файла с публичным ключом")
-	cfgPathFlag := flag.String("c", ClientDefaultString, "путь до json файла конфигурации сервера")
-	socketFlag := flag.String("s", ClientDefaultString, "если не указан gRPC сервер:порт, то используется HTTP клиент")
+	hashKey := flag.String("k", "", "ключ подписи метрик")
+	cryptoKey := flag.String("crypto-key", "", "путь до файла с публичным ключом")
+	cfgPathFlag := flag.String("c", "", "путь до json файла конфигурации сервера")
+	socketFlag := flag.String("s", "", "если не указан gRPC сервер:порт, то используется HTTP клиент")
 
 	flag.Parse()
 
 	cfgJSONPath := GetEnvString(ClientEnvPublicCfgPath, *cfgPathFlag)
-	if cfgJSONPath != ClientDefaultString {
+	if cfgJSONPath != "" {
 		updateClientConfigByJSON(cfgJSONPath, &cfg)
 	}
 
@@ -89,7 +88,6 @@ func NewClientConfig() ClientConfig {
 	ip, err := getInterfaceIP()
 	if err != nil {
 		log.Println("failed to get net interfaces:", err)
-		ip = ""
 	}
 	cfg.NetInterfaceAddr = ip
 

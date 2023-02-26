@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 )
 
 const GaugeTypeMetric = "gauge"
@@ -35,7 +33,7 @@ func (m *Metrics) Copy() Metrics {
 }
 
 func (m *Metrics) CalcHash(value, key string) {
-	if key == enviroment.ClientDefaultString {
+	if key == "" {
 		m.Hash = ""
 		return
 	}

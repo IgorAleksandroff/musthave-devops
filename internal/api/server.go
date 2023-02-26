@@ -10,14 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
+	"google.golang.org/grpc"
+
 	"github.com/IgorAleksandroff/musthave-devops/enviroment"
 	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
 	"github.com/IgorAleksandroff/musthave-devops/internal/generated/rpc"
 	"github.com/IgorAleksandroff/musthave-devops/internal/grpchandler"
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"
 	"github.com/IgorAleksandroff/musthave-devops/resthandler"
-	"github.com/go-chi/chi"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -72,10 +75,13 @@ func NewServer(cfg enviroment.ServerConfig, metricsUC metricscollection.MetricsC
 	// init GRPC server
 	listen, err := net.Listen("tcp", cfg.GRPSSocket)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(cfg.GetTrustedIPInterceptor()))
+	s := grpc.NewServer(grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(
+		grpcValidator.UnaryServerInterceptor(),
+		cfg.GetTrustedIPInterceptor(),
+	)))
 	metricGRPCHandler := grpchandler.New(metricsUC, cfg.HashKey)
 	rpc.RegisterMetricsCollectionServer(s, metricGRPCHandler)
 

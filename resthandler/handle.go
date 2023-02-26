@@ -3,7 +3,7 @@
 // @description Service for saving metrics and providing read access to them
 // @Version 1.0
 
-package metrichandler
+package resthandler
 
 import (
 	"bytes"
@@ -162,7 +162,7 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		verificationMetric.CalcHash(fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta), h.hashKey)
-		if h.hashKey != enviroment.ClientDefaultEnvHashKey && verificationMetric.Hash != metric.Hash {
+		if h.hashKey != enviroment.ServerDefaultString && verificationMetric.Hash != metric.Hash {
 			log.Println("hash isn't valid:", verificationMetric.Hash, metric)
 			http.Error(w, "hash isn't valid", http.StatusBadRequest)
 			return
@@ -175,7 +175,7 @@ func (h *handler) HandleJSONPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		verificationMetric.CalcHash(fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value), h.hashKey)
-		if h.hashKey != enviroment.ClientDefaultEnvHashKey && verificationMetric.Hash != metric.Hash {
+		if h.hashKey != enviroment.ServerDefaultString && verificationMetric.Hash != metric.Hash {
 			log.Println("hash isn't valid:", verificationMetric.Hash, metric)
 			http.Error(w, "hash isn't valid", http.StatusBadRequest)
 			return

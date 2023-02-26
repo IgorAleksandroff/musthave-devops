@@ -27,10 +27,11 @@ func main() {
 
 	cfg := enviroment.NewClientConfig()
 
-	client, err := devopsserver.NewClient(cfg.Host, cfg.CryptoKeyPath)
+	client, err := devopsserver.NewClient(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer client.Close()
 
 	runtimeMetricsRepo := runtimemetrics.NewRepository(cfg.HashKey)
 	runtimeMetricsUC := runtimemetrics.NewRuntimeMetrics(runtimeMetricsRepo, client)

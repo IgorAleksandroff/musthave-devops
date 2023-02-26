@@ -1,4 +1,4 @@
-package metrichandler
+package resthandler
 
 import (
 	"github.com/IgorAleksandroff/musthave-devops/internal/metricscollection"

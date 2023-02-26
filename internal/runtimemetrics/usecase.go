@@ -110,14 +110,21 @@ func (u runtimeMetrics) UpdateUtilMetrics() {
 func (u runtimeMetrics) SendMetrics() {
 	metricsName := u.repository.GetMetricsName()
 	for _, metricName := range metricsName {
-		metric, err := u.repository.GetMetric(metricName)
+		m, err := u.repository.GetMetric(metricName)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		endpoint := "/update/"
-		if _, err = u.devopsServerClient.DoPost(endpoint, metric); err != nil {
+		if err = u.devopsServerClient.Update(devopsserver.EndpointUpdate, []devopsserver.Metrics{
+			{
+				ID:    m.ID,
+				MType: m.MType,
+				Delta: m.Delta,
+				Value: m.Value,
+				Hash:  m.Hash,
+			},
+		}); err != nil {
 			log.Println(err)
 		}
 	}
@@ -126,8 +133,19 @@ func (u runtimeMetrics) SendMetrics() {
 // SendMetricsBatch sends batch collected metrics to server via HTTP.
 func (u runtimeMetrics) SendMetricsBatch() {
 	metricsName := u.repository.GetMetrics()
-	endpoint := "/updates/"
-	if _, err := u.devopsServerClient.DoPost(endpoint, metricsName); err != nil {
+
+	metrics := make([]devopsserver.Metrics, 0, len(metricsName))
+	for _, m := range metricsName {
+		metrics = append(metrics, devopsserver.Metrics{
+			ID:    m.ID,
+			MType: m.MType,
+			Delta: m.Delta,
+			Value: m.Value,
+			Hash:  m.Hash,
+		})
+	}
+
+	if err := u.devopsServerClient.Update(devopsserver.EndpointUpdates, metrics); err != nil {
 		log.Println(err)
 	}
 }

@@ -2,38 +2,138 @@ package devopsserver
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 
-	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+
+	"github.com/IgorAleksandroff/musthave-devops/enviroment"
+	"github.com/IgorAleksandroff/musthave-devops/internal/datacrypt"
+	"github.com/IgorAleksandroff/musthave-devops/internal/generated/rpc"
 )
 
-//go:generate mockery --name "Client"
+const (
+	EndpointUpdate    = "/update/"
+	EndpointUpdates   = "/updates/"
+	counterTypeMetric = "counter"
+	gaugeTypeMetric   = "gauge"
+)
+
+//go:generate mockery --name Client
+
+type Client interface {
+	Update(url string, data []Metrics) error
+	Close()
+}
 
 type (
-	client struct {
-		serverName string
-		transport  *http.Client
-		crypt      datacrypt.Cypher
+	clientHTTP struct {
+		serverName, serverIPAddr string
+		transport                *http.Client
+		crypt                    datacrypt.Cypher
 	}
 
-	Client interface {
-		DoGet(url string) ([]byte, error)
-		DoPost(url string, data interface{}) ([]byte, error)
+	clientGRPC struct {
+		client       rpc.MetricsCollectionClient
+		conn         *grpc.ClientConn
+		serverIPAddr string
 	}
 )
 
-func NewClient(serverName, cryptoKeyPathstring string) (Client, error) {
+func NewClient(cfg enviroment.ClientConfig) (Client, error) {
+	if cfg.GRPSServerSocket != "" {
+		return NewClientGRPC(cfg.NetInterfaceAddr, cfg.GRPSServerSocket)
+	}
+
+	return NewClientHTTP(cfg.Host, cfg.NetInterfaceAddr, cfg.CryptoKeyPath)
+}
+
+func NewClientGRPC(netInterfaceAddr, socket string) (*clientGRPC, error) {
+	// устанавливаем соединение с сервером
+	conn, err := grpc.Dial(socket, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to connect")
+	}
+
+	return &clientGRPC{
+		client:       rpc.NewMetricsCollectionClient(conn),
+		conn:         conn,
+		serverIPAddr: netInterfaceAddr,
+	}, nil
+}
+
+func (c clientGRPC) Update(_ string, data []Metrics) error {
+	metrics := make([]*rpc.Metrics, 0, len(data))
+	for _, m := range data {
+		metric := rpc.Metrics{
+			Id:   m.ID,
+			Hash: m.Hash,
+		}
+
+		switch m.MType {
+		case counterTypeMetric:
+			metric.MType = rpc.Metrics_COUNTER
+		case gaugeTypeMetric:
+			metric.MType = rpc.Metrics_GAUGE
+		default:
+			return errors.New("unknown metric type")
+		}
+
+		if m.Delta != nil {
+			metric.Delta = *m.Delta
+		}
+
+		if m.Value != nil {
+			metric.Value = *m.Value
+		}
+
+		metrics = append(metrics, &metric)
+	}
+
+	md := metadata.New(map[string]string{"X-Real-IP": c.serverIPAddr})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	_, err := c.client.UpdateMetrics(ctx, &rpc.UpdateMetricsRequest{
+		Metrics: metrics,
+	})
+	if err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.InvalidArgument:
+				return errors.Wrap(err, "parameters validation failed ")
+			case codes.NotFound:
+				return errors.Wrap(err, "incorrect MType")
+			case codes.Aborted:
+				return errors.Wrap(err, "incorrect hash")
+			}
+		}
+	}
+
+	return err
+}
+
+func (c clientGRPC) Close() {
+	if err := c.conn.Close(); err != nil {
+		log.Println(err)
+	}
+}
+
+func NewClientHTTP(serverName, netInterfaceAddr, cryptoKeyPathString string) (*clientHTTP, error) {
 	var dc datacrypt.Cypher
 
-	if cryptoKeyPathstring != "" {
+	if cryptoKeyPathString != "" {
 		var err error
 
 		dc, err = datacrypt.New(
-			datacrypt.WithPublicKey(cryptoKeyPathstring),
+			datacrypt.WithPublicKey(cryptoKeyPathString),
 			datacrypt.WithLabel("metrics"),
 		)
 		if err != nil {
@@ -41,14 +141,32 @@ func NewClient(serverName, cryptoKeyPathstring string) (Client, error) {
 		}
 	}
 
-	return &client{
-		serverName: serverName,
-		transport:  &http.Client{},
-		crypt:      dc,
+	return &clientHTTP{
+		serverName:   serverName,
+		serverIPAddr: netInterfaceAddr,
+		transport:    &http.Client{},
+		crypt:        dc,
 	}, nil
 }
 
-func (c client) do(req *http.Request) (body []byte, err error) {
+func (c clientHTTP) Update(url string, data []Metrics) error {
+	var err error
+	switch url {
+	case EndpointUpdate:
+		_, err = c.doPost(url, data[0])
+	case EndpointUpdates:
+		_, err = c.doPost(url, data)
+	default:
+		err = errors.New("unknown url")
+
+	}
+
+	return err
+}
+
+func (c clientHTTP) do(req *http.Request) (body []byte, err error) {
+	req.Header.Add("X-Real-IP", c.serverIPAddr)
+
 	r, err := c.transport.Do(req)
 	if err != nil {
 		return nil, err
@@ -63,7 +181,7 @@ func (c client) do(req *http.Request) (body []byte, err error) {
 	return body, nil
 }
 
-func (c client) DoGet(path string) ([]byte, error) {
+func (c clientHTTP) doGet(path string) ([]byte, error) {
 	req, err := http.NewRequest(http.MethodGet, c.serverName+path, nil)
 	if err != nil {
 		return nil, err
@@ -74,7 +192,7 @@ func (c client) DoGet(path string) ([]byte, error) {
 	return body, err
 }
 
-func (c client) DoPost(path string, data interface{}) ([]byte, error) {
+func (c clientHTTP) doPost(path string, data interface{}) ([]byte, error) {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		log.Println("payload marshal error")
@@ -100,4 +218,6 @@ func (c client) DoPost(path string, data interface{}) ([]byte, error) {
 	return body, err
 }
 
-var _ Client = &client{}
+func (c clientHTTP) Close() {}
+
+var _ Client = &clientHTTP{}

@@ -3,8 +3,11 @@ package runtimemetrics
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+)
 
-	"github.com/IgorAleksandroff/musthave-devops/enviroment"
+const (
+	GaugeTypeMetric   = "gauge"
+	CounterTypeMetric = "counter"
 )
 
 type Gauge float64
@@ -19,11 +22,11 @@ type Metric struct {
 }
 
 func (Gauge) GetType() string {
-	return "gauge"
+	return GaugeTypeMetric
 }
 
 func (Counter) GetType() string {
-	return "counter"
+	return CounterTypeMetric
 }
 
 type Metrics struct {
@@ -35,7 +38,7 @@ type Metrics struct {
 }
 
 func (m *Metrics) CalcHash(value, key string) {
-	if key == enviroment.ClientDefaultEnvHashKey {
+	if key == "" {
 		m.Hash = ""
 		return
 	}
